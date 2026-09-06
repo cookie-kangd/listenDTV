@@ -14,6 +14,7 @@ import com.fongmi.android.tv.setting.PlayerSetting;
 import com.fongmi.android.tv.setting.PreloadSetting;
 import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.ui.base.BaseFragment;
+import com.fongmi.android.tv.ui.activity.HomeActivity;
 import com.fongmi.android.tv.ui.dialog.PreloadDialog;
 import com.fongmi.android.tv.utils.FileUtil;
 
@@ -37,6 +38,7 @@ public class SettingPreloadFragment extends BaseFragment {
 
     @Override
     protected void initEvent() {
+        mBinding.toolbar.setNavigationOnClickListener(v -> ((HomeActivity) requireActivity()).change(1));
         mBinding.preload.setOnClickListener(this::setPreload);
         mBinding.preloadNext.setOnClickListener(this::setPreloadNext);
         mBinding.preloadSize.setOnClickListener(view -> PreloadDialog.show(this, PreloadDialog.SIZE));

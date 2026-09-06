@@ -137,6 +137,22 @@ public class Setting {
         Prefers.put("exit_clean", clean);
     }
 
+    public static boolean getHighRefresh() {
+        return Prefers.getBoolean("high_refresh", true);
+    }
+
+    public static void putHighRefresh(boolean value) {
+        Prefers.put("high_refresh", value);
+    }
+
+    public static boolean getTv() {
+        return Prefers.getBoolean("tv", true);
+    }
+
+    public static void putTv(boolean value) {
+        Prefers.put("tv", value);
+    }
+
     public static boolean isAdblock() {
         return Prefers.getBoolean("adblock", true);
     }

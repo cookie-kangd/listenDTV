@@ -15,6 +15,7 @@ import com.fongmi.android.tv.setting.DecodeSetting;
 import com.fongmi.android.tv.setting.PlayerSetting;
 import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.ui.base.BaseFragment;
+import com.fongmi.android.tv.ui.activity.HomeActivity;
 import com.fongmi.android.tv.utils.ResUtil;
 
 public class SettingDecodeFragment extends BaseFragment {
@@ -38,6 +39,7 @@ public class SettingDecodeFragment extends BaseFragment {
 
     @Override
     protected void initEvent() {
+        mBinding.toolbar.setNavigationOnClickListener(v -> ((HomeActivity) requireActivity()).change(1));
         mBinding.aac.setOnClickListener(this::setAAC);
         mBinding.tunnel.setOnClickListener(this::setTunnel);
         mBinding.audioPrefer.setOnClickListener(this::setAudioPrefer);

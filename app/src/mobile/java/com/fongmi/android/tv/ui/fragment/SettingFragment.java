@@ -100,6 +100,8 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.dohText.setText(getDohList()[getDohIndex()]);
         mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
         mBinding.exitCleanText.setText(Setting.getSwitch(Setting.getExitClean()));
+        mBinding.highRefreshText.setText(Setting.getSwitch(Setting.getHighRefresh()));
+        mBinding.tvText.setText(Setting.getSwitch(Setting.getTv()));
         mBinding.sizeText.setText((size = ResUtil.getStringArray(R.array.select_size))[PlayerSetting.getSize()]);
     }
 
@@ -126,6 +128,8 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.restore.setOnClickListener(this::onRestore);
         mBinding.about.setOnClickListener(this::onAbout);
         mBinding.exitClean.setOnClickListener(this::setExitClean);
+        mBinding.highRefresh.setOnClickListener(this::setHighRefresh);
+        mBinding.tv.setOnClickListener(this::setTv);
         mBinding.vod.setOnLongClickListener(this::onVodEdit);
         mBinding.vodHome.setOnClickListener(this::onVodHome);
         mBinding.live.setOnLongClickListener(this::onLiveEdit);
@@ -259,6 +263,18 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     private void setExitClean(View view) {
         Setting.putExitClean(!Setting.getExitClean());
         mBinding.exitCleanText.setText(Setting.getSwitch(Setting.getExitClean()));
+    }
+
+    private void setHighRefresh(View view) {
+        Setting.putHighRefresh(!Setting.getHighRefresh());
+        mBinding.highRefreshText.setText(Setting.getSwitch(Setting.getHighRefresh()));
+        com.fongmi.android.tv.utils.RefreshRate.apply(requireActivity());
+    }
+
+    private void setTv(View view) {
+        Setting.putTv(!Setting.getTv());
+        mBinding.tvText.setText(Setting.getSwitch(Setting.getTv()));
+        getRoot().setNavigation();
     }
 
     private void onAbout(View view) {

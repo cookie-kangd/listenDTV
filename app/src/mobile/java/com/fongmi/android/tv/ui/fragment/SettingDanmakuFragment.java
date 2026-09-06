@@ -15,6 +15,7 @@ import com.fongmi.android.tv.impl.DanmakuListener;
 import com.fongmi.android.tv.setting.DanmakuSetting;
 import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.ui.base.BaseFragment;
+import com.fongmi.android.tv.ui.activity.HomeActivity;
 import com.fongmi.android.tv.ui.dialog.DanmakuApiDialog;
 
 public class SettingDanmakuFragment extends BaseFragment implements DanmakuListener {
@@ -45,6 +46,7 @@ public class SettingDanmakuFragment extends BaseFragment implements DanmakuListe
 
     @Override
     protected void initEvent() {
+        mBinding.toolbar.setNavigationOnClickListener(v -> ((HomeActivity) requireActivity()).change(1));
         mBinding.danmakuApi.setOnClickListener(this::onDanmakuApi);
         mBinding.danmakuAuto.setOnClickListener(this::setDanmakuAuto);
         mBinding.danmakuLoad.setOnClickListener(this::setDanmakuLoad);

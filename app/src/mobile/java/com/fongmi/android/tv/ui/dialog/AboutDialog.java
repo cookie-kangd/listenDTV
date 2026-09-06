@@ -70,11 +70,9 @@ public class AboutDialog extends BaseAlertDialog {
             try {
                 JSONObject object = Github.fetchLatest();
                 String tag = object.optString("tag_name");
-                String body = object.optString("body");
                 App.post(() -> {
                     if (!isAdded()) return;
                     binding.latestText.setText(ResUtil.getString(R.string.about_latest, tag));
-                    binding.notesText.setText(body.isEmpty() ? ResUtil.getString(R.string.about_no_notes) : body.trim());
                 });
             } catch (Exception e) {
                 App.post(() -> {

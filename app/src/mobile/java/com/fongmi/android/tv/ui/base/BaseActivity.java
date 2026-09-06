@@ -18,6 +18,7 @@ import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.ui.custom.CustomWallView;
+import com.fongmi.android.tv.utils.RefreshRate;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.google.android.material.color.DynamicColors;
 import com.google.android.material.color.DynamicColorsOptions;
@@ -36,6 +37,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         enableDynamicColor();
         super.onCreate(savedInstanceState);
         setContentView(getBinding().getRoot());
+        RefreshRate.apply(this);
         EventBus.getDefault().register(this);
         initView(savedInstanceState);
         setBackCallback();

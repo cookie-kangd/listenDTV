@@ -55,6 +55,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
 
     @Override
     protected void initEvent() {
+        mBinding.toolbar.setNavigationOnClickListener(v -> ((HomeActivity) requireActivity()).change(1));
         mBinding.engine.setOnClickListener(this::setEngine);
         mBinding.decode.setOnClickListener(this::onDecode);
         mBinding.adblock.setOnClickListener(this::setAdblock);

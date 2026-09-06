@@ -370,6 +370,8 @@
     <string name="update_check">正在檢查更新…</string>
     <string name="update_latest">已是最新版本</string>
     <string name="update_fail">檢查更新失敗，請稍後重試</string>
+    <string name="setting_high_refresh">螢幕高刷新率</string>
+    <string name="setting_tv">開啟電視</string>
     <string name="setting_about">關於</string>
     <string name="setting_exit_clean">退出時清理緩存</string>
     <string name="about_check">檢查更新</string>

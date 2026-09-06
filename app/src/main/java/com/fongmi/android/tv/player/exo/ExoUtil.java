@@ -8,6 +8,7 @@ import android.os.Looper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.media3.common.AudioAttributes;
+import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackException;
@@ -51,6 +52,9 @@ public final class ExoUtil {
         ExoPlayer player = preloadManagerBuilder.buildExoPlayer(playerBuilder);
         if (BuildConfig.DEBUG) player.addAnalyticsListener(new EventLogger());
         player.setAudioAttributes(AudioAttributes.DEFAULT, true);
+        // Hold CPU + network wake locks while playing so background/locked-screen
+        // listen mode is never interrupted by doze or network sleep.
+        player.setWakeMode(C.WAKE_MODE_NETWORK);
         player.setHandleAudioBecomingNoisy(true);
         player.setPlayWhenReady(true);
         player.addListener(listener);

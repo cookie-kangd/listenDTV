@@ -142,6 +142,7 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           name: ${{ github.ref_name }}
+          body_path: RELEASE_NOTES.md
           make_latest: true
           fail_on_unmatched_files: false
           files: app/build/outputs/apk/**/*.apk

@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- frosted glass: translucent dark base -->
+    <!-- frosted glass: highly translucent dark base, blends with the default background -->
     <item>
         <shape android:shape="rectangle">
             <corners android:radius="28dp" />
-            <solid android:color="#991B1B20" />
-            <stroke android:width="1dp" android:color="#1FFFFFFF" />
+            <solid android:color="#59202026" />
+            <stroke android:width="1dp" android:color="#10FFFFFF" />
         </shape>
     </item>
 
-    <!-- light sheen fading towards the bottom for a glass feel -->
+    <!-- faint light sheen fading towards the bottom for a glass feel -->
     <item>
         <shape android:shape="rectangle">
             <corners android:radius="28dp" />
-            <gradient android:angle="270" android:startColor="#26FFFFFF" android:endColor="#05FFFFFF" />
+            <gradient android:angle="270" android:startColor="#14FFFFFF" android:endColor="#00FFFFFF" />
         </shape>
     </item>
 

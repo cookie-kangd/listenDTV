@@ -87,6 +87,14 @@ public class App extends Application implements Application.ActivityLifecycleCal
         super.onCreate();
         Notify.createChannel();
         registerActivityLifecycleCallbacks(this);
+        cleanCacheOnLaunch();
+    }
+
+    private void cleanCacheOnLaunch() {
+        // Covers exits that skipped the onDestroy cleanup, e.g. the user swiping
+        // the app away from recents (the process is killed without any callback).
+        // Clearing at launch guarantees the cache never survives a restart.
+        if (Setting.getExitClean()) Task.execute(() -> Path.clear(Path.cache()));
     }
 
     @Override

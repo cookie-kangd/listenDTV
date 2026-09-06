@@ -16,9 +16,14 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_alignParentBottom="true"
-        android:background="@color/transparent"
-        app:elevation="0dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/shape_nav_glass"
+        app:elevation="8dp"
+        app:itemBackground="@android:color/transparent"
         app:itemIconTint="@color/selector_nav"
+        app:itemRippleColor="#22FFFFFF"
         app:labelVisibilityMode="unlabeled"
         app:menu="@menu/menu_nav" />
 

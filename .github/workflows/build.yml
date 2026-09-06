@@ -37,6 +37,9 @@ jobs:
           sed -i -E 's/^(androidGradlePlugin = ")[0-9.]+(")/\19.3.1\2/' .media3/gradle/libs.versions.toml
           grep -n "androidGradlePlugin" .media3/gradle/libs.versions.toml
 
+      - name: Inject secondary-subtitle no-op shims into .media3
+        run: python3 .github/patch-media3-secondary.py
+
       - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:

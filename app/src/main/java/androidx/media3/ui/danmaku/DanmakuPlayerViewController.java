@@ -41,4 +41,8 @@ public final class DanmakuPlayerViewController {
     public void sendNow(String text) {
         // No-op.
     }
+
+    public void close() {
+        // No-op.
+    }
 }

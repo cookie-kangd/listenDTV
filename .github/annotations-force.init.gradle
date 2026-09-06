@@ -1,0 +1,14 @@
+// Gradle 9.7+ pins org.jetbrains:annotations to {strictly 13.0} on buildscript
+// classpaths (embedded Kotlin), but the FongMi/media composite build's build-logic
+// (AGP 9.0.1 -> ddmlib/layoutlib-api) requires 23.0.0. Align everything on 13.0.
+// Init scripts apply to every build in the invocation, including the .media3
+// included build, so this covers all classpath resolutions in the composite.
+allprojects {
+    buildscript {
+        configurations.classpath {
+            resolutionStrategy {
+                force 'org.jetbrains:annotations:13.0'
+            }
+        }
+    }
+}

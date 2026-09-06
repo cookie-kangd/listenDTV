@@ -110,7 +110,8 @@ jobs:
           MEDIA3_SOURCE_DIR: ${{ github.workspace }}/.media3
         run: |
           chmod +x gradlew
-          ./gradlew assembleLeanbackRelease assembleMobileRelease --no-daemon --stacktrace
+          ./gradlew assembleLeanbackRelease assembleMobileRelease --no-daemon --stacktrace \
+            --init-script .github/annotations-force.init.gradle
 
       - name: List APKs
         if: always()

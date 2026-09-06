@@ -14,17 +14,6 @@ plugins { id("gradlebuild.media3-settings-logic") }
 
 rootProject.name = "androidx.media3"
 
-// Gradle 9.7+ pins org.jetbrains:annotations to {strictly 13.0} on buildscript
-// classpaths (embedded Kotlin), but build-logic (AGP 9.0.1 -> ddmlib) needs 23.0.0.
-// Force 13.0 on every classpath in this build before projects configure.
-gradle.projectsLoaded {
-  it.allprojects { p ->
-    p.buildscript.configurations.matching { c -> c.name == "classpath" }.configureEach {
-      resolutionStrategy.force("org.jetbrains:annotations:13.0")
-    }
-  }
-}
-
 // Only the modules consumed by this app are included, to keep the composite
 // build fast. Add a module here AND in settings.gradle's dependencySubstitution.
 val requiredModules =

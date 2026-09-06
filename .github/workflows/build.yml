@@ -1,0 +1,93 @@
+name: Build listenDTV
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  GRADLE_OPTS: "-Xmx4g -XX:MaxMetaspaceSize=512m"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Install SDK / NDK
+        run: |
+          yes | sdkmanager --licenses >/dev/null 2>&1
+          set +e
+          PLAT=0
+          for ch in "" "--channel=1" "--channel=2" "--channel=3"; do
+            if [ -z "$ch" ]; then ARGS="platforms;android-37"; else ARGS="$ch platforms;android-37"; fi
+            sdkmanager $ARGS >/dev/null 2>&1 && { PLAT=1; break; }
+          done
+          BT=""
+          for b in 37.0.0 36.0.0 35.0.0 34.0.0; do
+            sdkmanager "build-tools;$b" >/dev/null 2>&1 && { BT=$b; break; }
+          done
+          sdkmanager "platform-tools" >/dev/null 2>&1
+          NDK=""
+          for n in 25.2.9519653 26.3.11579264 27.0.12077973; do
+            sdkmanager "ndk;$n" >/dev/null 2>&1 && { NDK=$n; break; }
+          done
+          set -e
+          echo "PLAT=$PLAT BT=$BT NDK=$NDK"
+          echo "ANDROID_NDK_HOME=$(ls -d $ANDROID_HOME/ndk/* | head -1)" >> "$GITHUB_ENV"
+          sdkmanager --list_installed 2>/dev/null | head -40
+
+      - name: Generate signing keystore
+        run: |
+          keytool -genkey -v -keystore release.keystore -alias listenDTV \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass android -keypass android \
+            -dname "CN=listenDTV, OU=Dev, O=listenDTV, L=Unknown, S=Unknown, C=CN"
+          {
+            echo "storeFile=release.keystore"
+            echo "keyAlias=listenDTV"
+            echo "keyPassword=android"
+            echo "storePassword=android"
+            echo "sdk.dir=$ANDROID_HOME"
+          } > local.properties
+
+      - name: Build release APKs
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleLeanbackRelease assembleMobileRelease --no-daemon --stacktrace
+
+      - name: List APKs
+        if: always()
+        run: find app/build/outputs -name '*.apk' -print
+
+      - name: Upload APK artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: listenDTV-apks
+          path: app/build/outputs/**/*.apk
+          if-no-files-found: warn
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v3
+        with:
+          name: ${{ github.ref_name }}
+          make_latest: true
+          fail_on_unmatched_files: false
+          files: app/build/outputs/apk/**/*.apk

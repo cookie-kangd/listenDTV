@@ -31,6 +31,7 @@ val requiredModules =
     "lib-exoplayer-hls",
     "lib-exoplayer-rtsp",
     "lib-exoplayer-smoothstreaming",
+    "lib-effect",
     "lib-extractor",
     "lib-mpvplayer",
     "lib-session",

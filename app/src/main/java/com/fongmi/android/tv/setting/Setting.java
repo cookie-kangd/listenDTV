@@ -121,6 +121,14 @@ public class Setting {
         Prefers.put("update", update);
     }
 
+    public static boolean getListen() {
+        return Prefers.getBoolean("listen", true);
+    }
+
+    public static void putListen(boolean listen) {
+        Prefers.put("listen", listen);
+    }
+
     public static boolean isAdblock() {
         return Prefers.getBoolean("adblock", true);
     }

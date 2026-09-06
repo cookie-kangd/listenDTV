@@ -16,11 +16,11 @@ android {
     compileSdk libs.versions.compileSdk.get().toInteger()
 
     defaultConfig {
-        applicationId "com.fongmi.android.tv"
+        applicationId "com.listendtv.app"
         minSdk libs.versions.minSdk.get().toInteger()
         targetSdk libs.versions.targetSdk.get().toInteger()
-        versionCode 564
-        versionName "0.1.1"
+        versionCode 565
+        versionName "0.1.2"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString(), "eventBusIndex": "com.fongmi.android.tv.event.EventIndex"]
@@ -44,8 +44,13 @@ android {
         viewBinding = true
     }
 
+    androidResources {
+        localeFilters.addAll(['en', 'zh-rCN', 'zh-rTW'])
+    }
+
     signingConfigs {
         release {
+            storeType 'PKCS12'
             storeFile file(localProps['storeFile'])
             keyAlias localProps['keyAlias']
             keyPassword localProps['storePassword']

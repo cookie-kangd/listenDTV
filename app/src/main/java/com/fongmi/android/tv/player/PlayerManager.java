@@ -63,6 +63,7 @@ public class PlayerManager implements ParseCallback {
 
     private long pendingStartPositionMs;
     private boolean danmakuEnabled;
+    private boolean listenMode;
     private boolean initTrack;
     private int retry;
     private int decode;
@@ -316,6 +317,19 @@ public class PlayerManager implements ParseCallback {
         callback.onDanmakuEnabledChanged(danmakuEnabled);
     }
 
+    /**
+     * Listen mode (audio only, no video decode/render). Applied to the current
+     * engine immediately and to every engine created afterwards.
+     */
+    public void setListenMode(boolean enabled) {
+        listenMode = enabled;
+        if (engine != null) engine.setListenMode(enabled);
+    }
+
+    public boolean isListenMode() {
+        return listenMode;
+    }
+
     public void applySubtitleStyle() {
         if (engine != null) engine.applySubtitleStyle();
     }
@@ -502,6 +516,7 @@ public class PlayerManager implements ParseCallback {
         PlayerEngine old = engine;
         player.removeListener(listener);
         engine = PlayerEngineFactory.create(decode, spec, listener);
+        engine.setListenMode(listenMode);
         setPlayer(engine.getPlayer());
         old.release();
     }

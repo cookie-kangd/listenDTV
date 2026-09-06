@@ -99,12 +99,8 @@ jobs:
           echo "ANDROID_NDK_HOME=$NDK_HOME" >> "$GITHUB_ENV"
           sdkmanager --list_installed 2>/dev/null | grep -i platform
 
-      - name: Generate signing keystore
+      - name: Prepare signing config (keystore is committed for stable OTA signatures)
         run: |
-          keytool -genkey -v -keystore app/release.keystore -alias listenDTV \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass android -keypass android \
-            -dname "CN=listenDTV, OU=Dev, O=listenDTV, L=Unknown, S=Unknown, C=CN"
           {
             echo "storeFile=release.keystore"
             echo "keyAlias=listenDTV"
@@ -112,6 +108,7 @@ jobs:
             echo "storePassword=android"
             echo "sdk.dir=$ANDROID_HOME"
           } > local.properties
+          ls -la app/release.keystore
 
       - name: Build release APKs
         env:

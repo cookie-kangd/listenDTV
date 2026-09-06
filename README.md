@@ -1,8 +1,14 @@
-# 開發者文件
+# listenDTV
 
-基於 [CatVod](https://github.com/CatVodTVOfficial/CatVodTVJarLoader) 的開源 Android 影音應用程式，同時支援 **Android TV 大螢幕**與**手機**兩種使用情境，並且透過外部配置靈活擴展內容。
+基於 [CatVod](https://github.com/CatVodTVOfficial/CatVodTVJarLoader) 與 [FongMi/TV](https://github.com/FongMi/TV) 的開源 Android 影音應用程式 fork，同時支援 **Android TV 大螢幕**與**手機**兩種使用情境，並且透過外部配置靈活擴展內容。
 
-[討論群組](https://t.me/fongmi_official) | [發布頻道](https://t.me/fongmi_release)
+- 版本發佈：[Releases](https://github.com/cookie-kangd/listenDTV/releases)（應用內「設置 → 版本」可自動檢查更新，下載走 gh-proxy 加速，適配國內網路）
+- 播放核心：使用 [FongMi/media](https://github.com/FongMi/media)（Media3 定制版）源碼 composite 編譯
+
+**listenDTV 特色**
+
+- **聽播模式**（手機版，預設開啟）：只出聲音、不渲染畫面，極低記憶體與電量佔用，適合聽劇 / 聽播客；點擊畫面呼出控制欄，最左側耳機按鈕可隨時切換回視頻畫面，橫豎屏均可用；控制欄另含 快退15s / 播放暫停 / 快進30s / 畫中畫 按鈕。
+- 應用內 OTA 自更新：指向本倉庫 Release，版本號逐段比較，代理失敗自動回退直鏈。
 
 [![Star History Chart](https://api.star-history.com/svg?repos=FongMi/TV&type=Date)](https://www.star-history.com/#FongMi/TV&Date)
 
@@ -28,7 +34,7 @@
 
 | 項目      | 值                             |
 |---------|-------------------------------|
-| package | `com.fongmi.android.tv`       |
+| package | `com.listendtv.app`           |
 | minSdk  | 24（Android 7.0 Nougat）        |
 | abi     | `arm64-v8a`、`armeabi-v7a`     |
 | flavor  | `leanback`（電視版）、`mobile`（手機版） |

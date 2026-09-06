@@ -93,6 +93,23 @@
         android:orientation="horizontal">
 
         <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/listen"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="20dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="center"
+            android:src="@drawable/ic_control_listen_on" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/rewind"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="20dp"
+            android:background="@drawable/shape_control"
+            android:src="@drawable/exo_icon_rewind" />
+
+        <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/prev"
             android:layout_width="40dp"
             android:layout_height="40dp"
@@ -105,8 +122,8 @@
             android:id="@+id/play"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_marginStart="40dp"
-            android:layout_marginEnd="40dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
             android:background="@drawable/shape_control"
             android:src="@drawable/exo_icon_play" />
 
@@ -118,6 +135,23 @@
             android:src="@drawable/exo_icon_next"
             android:visibility="gone"
             tools:visibility="visible" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/forward"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:background="@drawable/shape_control"
+            android:src="@drawable/exo_icon_fastforward" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/pip"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="center"
+            android:src="@drawable/ic_control_pip" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 

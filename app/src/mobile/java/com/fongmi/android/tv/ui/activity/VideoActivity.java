@@ -75,6 +75,7 @@ import com.fongmi.android.tv.player.media.PlaySpec;
 import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.setting.DanmakuSetting;
 import com.fongmi.android.tv.setting.PlayerSetting;
+import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.setting.SpeedSetting;
 import com.fongmi.android.tv.ui.adapter.EpisodeAdapter;
 import com.fongmi.android.tv.ui.adapter.FlagAdapter;
@@ -116,6 +117,9 @@ import java.util.List;
 import java.util.Objects;
 
 public class VideoActivity extends PlaybackActivity implements Clock.Callback, CustomKeyDown.Listener, ControlDialog.Listener, ParseDialog.Listener, VodPlaybackHost, FlagAdapter.OnClickListener, EpisodeAdapter.OnClickListener, QualityAdapter.OnClickListener, QuickAdapter.OnClickListener, CastDialog.Listener, InfoDialog.Listener {
+
+    private static final long REWIND_MS = 15000;
+    private static final long FORWARD_MS = 30000;
 
     private ActivityVideoBinding mBinding;
     private VideoViewModel mViewModel;
@@ -307,6 +311,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         mR4 = this::showEmpty;
         mPiP = new PiP();
         checkDanmakuImg();
+        checkListenImg();
         setRecyclerView();
         setVideoView();
         setViewModel();
@@ -330,6 +335,10 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         mBinding.control.cast.setOnClickListener(view -> onCast());
         mBinding.control.info.setOnClickListener(view -> onInfo());
         mBinding.control.keep.setOnClickListener(view -> onKeep());
+        mBinding.control.listen.setOnClickListener(view -> onListen());
+        mBinding.control.rewind.setOnClickListener(view -> seekTo(-REWIND_MS));
+        mBinding.control.forward.setOnClickListener(view -> seekTo(FORWARD_MS));
+        mBinding.control.pip.setOnClickListener(view -> onPip());
         mBinding.control.play.setOnClickListener(view -> checkPlay());
         mBinding.control.next.setOnClickListener(view -> checkNext());
         mBinding.control.prev.setOnClickListener(view -> checkPrev());
@@ -1247,6 +1256,26 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         mBinding.control.danmaku.setImageResource(DanmakuSetting.isShow() ? R.drawable.ic_control_danmaku_on : R.drawable.ic_control_danmaku_off);
     }
 
+    private void checkListenImg() {
+        mBinding.control.listen.setImageResource(Setting.getListen() ? R.drawable.ic_control_listen_on : R.drawable.ic_control_listen_off);
+    }
+
+    private void onListen() {
+        boolean enabled = !Setting.getListen();
+        Setting.putListen(enabled);
+        if (service() != null) player().setListenMode(enabled);
+        setAudioOnly(enabled);
+        checkListenImg();
+        Notify.show(enabled ? R.string.listen_on : R.string.listen_off);
+    }
+
+    private void onPip() {
+        if (service() == null || mPiP == null) return;
+        int width = player().getVideoWidth() > 0 ? player().getVideoWidth() : 1280;
+        int height = player().getVideoHeight() > 0 ? player().getVideoHeight() : 720;
+        mPiP.enter(this, width, height, getScale());
+    }
+
     private void createKeep() {
         Keep keep = new Keep();
         keep.setKey(getHistoryKey());
@@ -1304,6 +1333,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
     protected void onPrepare() {
         setPlaybackMode();
         checkControl();
+        if (service() != null) player().setListenMode(Setting.getListen());
     }
 
     @Override
@@ -1631,7 +1661,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
     protected void onStart() {
         super.onStart();
         mClock.stop().start();
-        setAudioOnly(false);
+        setAudioOnly(Setting.getListen());
         setStop(false);
     }
 

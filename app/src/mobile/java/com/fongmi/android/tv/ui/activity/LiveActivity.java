@@ -820,6 +820,7 @@ public class LiveActivity extends PlaybackActivity implements CustomKeyDown.List
     protected void onPrepare() {
         setPlaybackMode();
         checkControl();
+        player().setListenMode(false);
     }
 
     @Override

@@ -63,6 +63,18 @@ public interface PlayerEngine {
         return false;
     }
 
+    /**
+     * Listen mode: disable the video track entirely so neither video decoding
+     * nor rendering happens, drastically reducing CPU/memory/battery usage
+     * while audio keeps playing. Works on any media3 Player implementation.
+     */
+    default void setListenMode(boolean enabled) {
+        Player player = getPlayer();
+        if (player == null) return;
+        player.setTrackSelectionParameters(player.getTrackSelectionParameters().buildUpon()
+                .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, enabled).build());
+    }
+
     String getErrorMessage(PlaybackException e);
 
     ErrorAction handleError(PlaybackException e);

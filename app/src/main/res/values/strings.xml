@@ -1,7 +1,7 @@
 <resources xmlns:xliff="http://schemas.android.com/apk/res-auto">
 
     <!-- App -->
-    <string name="app_name">TV</string>
+    <string name="app_name">listenDTV</string>
 
     <!-- Live -->
     <string name="live_pass">Pass</string>
@@ -369,6 +369,8 @@
     <string name="update_version">New version <xliff:g name="name">%s</xliff:g></string>
     <string name="update_check">Checking for updates…</string>
     <string name="update_confirm">Update</string>
+    <string name="listen_on">Listen mode on: video rendering is off, audio only</string>
+    <string name="listen_off">Listen mode off: video rendering restored</string>
 
     <!-- Crash -->
     <string name="crash_info">An unexpected error occurred.\nSorry for the inconvenience.</string>

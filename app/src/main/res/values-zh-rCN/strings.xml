@@ -1,7 +1,7 @@
 <resources xmlns:xliff="http://schemas.android.com/apk/res-auto">
 
     <!-- App -->
-    <string name="app_name">影视</string>
+    <string name="app_name">listenDTV</string>
 
     <!-- Live -->
     <string name="live_pass">密码</string>
@@ -369,6 +369,8 @@
     <string name="update_version">发现新版本 <xliff:g name="name">%s</xliff:g></string>
     <string name="update_check">正在检测更新…</string>
     <string name="update_confirm">更新</string>
+    <string name="listen_on">听播模式已开启：不渲染画面，仅播放声音，更省电</string>
+    <string name="listen_off">听播模式已关闭：恢复画面渲染</string>
 
     <!-- Crash -->
     <string name="crash_info">发生意外错误\n抱歉给您带来不便</string>

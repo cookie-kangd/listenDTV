@@ -21,10 +21,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
+
+      - name: Set up Python 3.10 (required by Chaquopy buildPython)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4
@@ -33,24 +38,47 @@ jobs:
         run: |
           yes | sdkmanager --licenses >/dev/null 2>&1
           set +e
+          # API 37 platforms are published as 37.x (preview) in non-stable channels.
+          # Install the concrete 37.x platform; AGP resolves compileSdk by SDK level.
           PLAT=0
-          for ch in "" "--channel=1" "--channel=2" "--channel=3"; do
-            if [ -z "$ch" ]; then ARGS="platforms;android-37"; else ARGS="$ch platforms;android-37"; fi
-            sdkmanager $ARGS >/dev/null 2>&1 && { PLAT=1; break; }
+          for pkg in "platforms;android-37.2" "platforms;android-37.0" "platforms;android-37.1"; do
+            for ch in stable 1 2; do
+              if [ "$ch" = "stable" ]; then
+                sdkmanager "$pkg" >/dev/null 2>&1 && { PLAT=1; break 2; }
+              else
+                sdkmanager --channel=$ch "$pkg" >/dev/null 2>&1 && { PLAT=1; break 2; }
+              fi
+            done
           done
           BT=""
-          for b in 37.0.0 36.0.0 35.0.0 34.0.0; do
+          for b in 37.0.0 36.0.0 35.0.0; do
             sdkmanager "build-tools;$b" >/dev/null 2>&1 && { BT=$b; break; }
           done
           sdkmanager "platform-tools" >/dev/null 2>&1
-          NDK=""
-          for n in 25.2.9519653 26.3.11579264 27.0.12077973; do
-            sdkmanager "ndk;$n" >/dev/null 2>&1 && { NDK=$n; break; }
-          done
+          # Prefer a preinstalled NDK compatible with Chaquopy 17 (r25-r27)
+          NDK_HOME=""
+          if [ -d "$ANDROID_HOME/ndk/27.3.13750724" ]; then NDK_HOME="$ANDROID_HOME/ndk/27.3.13750724"
+          elif [ -d "$ANDROID_HOME/ndk/25.2.9519653" ]; then NDK_HOME="$ANDROID_HOME/ndk/25.2.9519653"
+          else
+            for n in 27.3.13750724 25.2.9519653; do
+              sdkmanager "ndk;$n" >/dev/null 2>&1 && { NDK_HOME=$(ls -d $ANDROID_HOME/ndk/$n 2>/dev/null | head -1); [ -n "$NDK_HOME" ] && break; }
+            done
+          fi
           set -e
-          echo "PLAT=$PLAT BT=$BT NDK=$NDK"
-          echo "ANDROID_NDK_HOME=$(ls -d $ANDROID_HOME/ndk/* | head -1)" >> "$GITHUB_ENV"
-          sdkmanager --list_installed 2>/dev/null | head -40
+          # Ensure canonical android-37 dir exists for AGP
+          if [ -d "$ANDROID_HOME/platforms" ]; then
+            pushd "$ANDROID_HOME/platforms" >/dev/null
+            for d in android-37.*; do
+              if [ -d "$d" ] && [ ! -e android-37 ]; then
+                ln -s "$d" android-37
+                echo "linked android-37 -> $d"
+              fi
+            done
+            popd >/dev/null
+          fi
+          echo "PLAT=$PLAT BT=$BT NDK_HOME=$NDK_HOME"
+          echo "ANDROID_NDK_HOME=$NDK_HOME" >> "$GITHUB_ENV"
+          sdkmanager --list_installed 2>/dev/null | grep -i platform
 
       - name: Generate signing keystore
         run: |

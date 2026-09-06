@@ -47,9 +47,10 @@ Media3Modules.EXTERNAL_MODULES.forEach { (gradleName, moduleInfo) ->
 }
 
 // Test-only projects referenced by the modules above. They are replaced by
-// empty stubs so no test sources are compiled.
+// empty stubs so no test sources are compiled. lib-effect-ndk is referenced
+// by lib-effect's androidTestImplementation only, so an empty stub suffices.
 val stubRoot = rootDir.parentFile.resolve(".github/media3-stubs")
-setOf("lib-inspector", "test-data", "test-utils", "test-utils-robolectric").forEach { gradleName ->
+setOf("lib-effect-ndk", "lib-inspector", "test-data", "test-utils", "test-utils-robolectric").forEach { gradleName ->
   include(":$gradleName")
   project(":$gradleName").projectDir = stubRoot.resolve(gradleName)
 }

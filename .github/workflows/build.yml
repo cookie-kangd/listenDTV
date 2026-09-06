@@ -32,6 +32,11 @@ jobs:
       - name: Limit Media3 composite modules
         run: cp .github/media3-composite-settings.gradle.kts .media3/settings.gradle.kts
 
+      - name: Align Media3 AGP version with app (single AGP version required)
+        run: |
+          sed -i -E 's/^(androidGradlePlugin = ")[0-9.]+(")/\19.3.1\2/' .media3/gradle/libs.versions.toml
+          grep -n "androidGradlePlugin" .media3/gradle/libs.versions.toml
+
       - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:

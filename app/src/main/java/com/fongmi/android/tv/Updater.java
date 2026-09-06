@@ -16,17 +16,20 @@ import com.fongmi.android.tv.utils.Task;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
 
 public class Updater implements Download.Callback, UpdateListener {
 
-    private final Download download;
+    private Download download;
     private UpdateDialog dialog;
+    private String apkUrl;
+    private String directUrl;
+    private boolean proxyFailed;
 
     private Updater() {
-        this.download = Download.create(getApk(), getFile());
     }
 
     public static Updater create() {
@@ -37,12 +40,8 @@ public class Updater implements Download.Callback, UpdateListener {
         return Path.cache("update.apk");
     }
 
-    private String getJson() {
-        return Github.getJson(BuildConfig.FLAVOR);
-    }
-
-    private String getApk() {
-        return Github.getApk(BuildConfig.FLAVOR + "-" + (android.os.Process.is64Bit() ? "arm64_v8a" : "armeabi_v7a"));
+    private String getApkName() {
+        return BuildConfig.FLAVOR + "-" + (android.os.Process.is64Bit() ? "arm64_v8a" : "armeabi_v7a") + ".apk";
     }
 
     public Updater force() {
@@ -58,32 +57,74 @@ public class Updater implements Download.Callback, UpdateListener {
 
     private void doInBackground(FragmentActivity activity) {
         try {
-            JSONObject object = new JSONObject(OkHttp.string(getJson()));
-            String name = object.optString("name");
-            String desc = object.optString("desc");
-            int code = object.optInt("code");
-            if (code <= BuildConfig.VERSION_CODE) return;
-            App.post(() -> show(activity, name, desc));
+            JSONObject object = new JSONObject(OkHttp.string(Github.getApi()));
+            String tag = object.optString("tag_name");
+            String desc = object.optString("body");
+            if (!isNewer(tag)) return;
+            String asset = findApk(object);
+            if (asset == null) return;
+            apkUrl = Github.getApk(tag, asset);
+            String url = apkUrl;
+            App.post(() -> show(activity, tag, desc, url));
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void show(FragmentActivity activity, String version, String desc) {
+    private String findApk(JSONObject object) {
+        String wanted = getApkName();
+        JSONArray assets = object.optJSONArray("assets");
+        for (int i = 0; assets != null && i < assets.length(); i++) {
+            JSONObject asset = assets.optJSONObject(i);
+            if (asset == null) continue;
+            String name = asset.optString("name");
+            if (wanted.equals(name)) return name;
+        }
+        return null;
+    }
+
+    private boolean isNewer(String tag) {
+        return compareVersion(tag, BuildConfig.VERSION_NAME) > 0;
+    }
+
+    private static int compareVersion(String left, String right) {
+        String[] a = left.replaceFirst("^[vV]", "").split("\\.");
+        String[] b = right.replaceFirst("^[vV]", "").split("\\.");
+        int length = Math.max(a.length, b.length);
+        for (int i = 0; i < length; i++) {
+            int x = i < a.length ? parseInt(a[i]) : 0;
+            int y = i < b.length ? parseInt(b[i]) : 0;
+            if (x != y) return Integer.compare(x, y);
+        }
+        return 0;
+    }
+
+    private static int parseInt(String value) {
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private void show(FragmentActivity activity, String version, String desc, String url) {
         dismiss();
+        apkUrl = url;
+        directUrl = Github.getApkDirect(version, getApkName());
         dialog = UpdateDialog.create().title(ResUtil.getString(R.string.update_version, version)).desc(desc).listener(this).show(activity);
     }
 
     @Override
     public void onConfirm(View view) {
         view.setEnabled(false);
+        download = Download.create(apkUrl, getFile());
         download.start(this);
     }
 
     @Override
     public void onCancel(View view) {
         Setting.putUpdate(false);
-        download.cancel();
+        if (download != null) download.cancel();
         dismiss();
     }
 
@@ -101,6 +142,13 @@ public class Updater implements Download.Callback, UpdateListener {
 
     @Override
     public void error(String msg) {
+        // gh-proxy can be flaky; fall back to the direct GitHub URL once.
+        if (!proxyFailed && directUrl != null) {
+            proxyFailed = true;
+            download = Download.create(directUrl, getFile());
+            download.start(this);
+            return;
+        }
         Notify.show(msg);
         dismiss();
     }

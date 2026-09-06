@@ -83,6 +83,10 @@ android {
     }
 }
 
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << "-Xmaxerrs" << "5000"
+}
+
 AbiApkPackaging.configure(project, SingleArtifact.APK.INSTANCE)
 
 dependencies {
@@ -93,6 +97,7 @@ dependencies {
     implementation libs.appcompat
     implementation libs.lifecycle.service
     implementation libs.media
+    implementation libs.bundles.media3
     implementation libs.palette
     implementation libs.recyclerview
     implementation libs.room.runtime
@@ -123,3 +128,4 @@ dependencies {
     annotationProcessor libs.glide.compiler
     coreLibraryDesugaring libs.desugar
 }
+

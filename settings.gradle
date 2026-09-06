@@ -25,3 +25,36 @@ include ':catvod'
 include ':chaquo'
 include ':quickjs'
 rootProject.name = "TV"
+
+
+// FongMi Media3 is not published as prebuilt artifacts. When MEDIA3_SOURCE_DIR
+// points at a checkout of FongMi/media (branch release-1.11.0-fongmi), the modules
+// this app needs are wired in as a composite build.
+def media3SourceDir = System.getenv("MEDIA3_SOURCE_DIR")
+if (media3SourceDir != null && !media3SourceDir.isBlank()) {
+    def media3Dir = file(media3SourceDir)
+    if (media3Dir.exists()) {
+        includeBuild(media3Dir) {
+            dependencySubstitution {
+                substitute module("androidx.media3:media3-common") using project(":lib-common")
+                substitute module("androidx.media3:media3-container") using project(":lib-container")
+                substitute module("androidx.media3:media3-database") using project(":lib-database")
+                substitute module("androidx.media3:media3-datasource") using project(":lib-datasource")
+                substitute module("androidx.media3:media3-datasource-okhttp") using project(":lib-datasource-okhttp")
+                substitute module("androidx.media3:media3-datasource-rtmp") using project(":lib-datasource-rtmp")
+                substitute module("androidx.media3:media3-decoder") using project(":lib-decoder")
+                substitute module("androidx.media3:media3-decoder-ffmpeg") using project(":lib-decoder-ffmpeg")
+                substitute module("androidx.media3:media3-exoplayer") using project(":lib-exoplayer")
+                substitute module("androidx.media3:media3-exoplayer-dash") using project(":lib-exoplayer-dash")
+                substitute module("androidx.media3:media3-exoplayer-hls") using project(":lib-exoplayer-hls")
+                substitute module("androidx.media3:media3-exoplayer-rtsp") using project(":lib-exoplayer-rtsp")
+                substitute module("androidx.media3:media3-exoplayer-smoothstreaming") using project(":lib-exoplayer-smoothstreaming")
+                substitute module("androidx.media3:media3-extractor") using project(":lib-extractor")
+                substitute module("androidx.media3:media3-mpvplayer") using project(":lib-mpvplayer")
+                substitute module("androidx.media3:media3-session") using project(":lib-session")
+                substitute module("androidx.media3:media3-ui") using project(":lib-ui")
+                substitute module("androidx.media3:media3-ui-danmaku") using project(":lib-ui-danmaku")
+            }
+        }
+    }
+}

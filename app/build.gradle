@@ -110,7 +110,8 @@ dependencies {
     implementation libs.customactivityoncrash
     implementation libs.eventbus
     implementation libs.flexbox
-    implementation libs.rtmp.client
+    // libs.rtmp.client removed: duplicates io.antmedia:rtmp-client pulled by the
+    // composite media3-datasource-rtmp module (same 3.2.0 classes).
     implementation libs.lottie
     implementation libs.material
     implementation libs.materialdesigncolors

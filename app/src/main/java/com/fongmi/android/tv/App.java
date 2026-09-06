@@ -12,9 +12,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.os.HandlerCompat;
 
+import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.android.tv.utils.Task;
 import com.fongmi.hook.Hook;
 import com.github.catvod.Init;
+import com.github.catvod.utils.Path;
 import com.google.gson.Gson;
 
 public class App extends Application implements Application.ActivityLifecycleCallbacks {
@@ -27,6 +30,7 @@ public class App extends Application implements Application.ActivityLifecycleCal
 
     private Activity activity;
     private Hook hook;
+    private int alive;
 
     public App() {
         instance = this;
@@ -107,10 +111,14 @@ public class App extends Application implements Application.ActivityLifecycleCal
 
     @Override
     public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
+        alive++;
     }
 
     @Override
     public void onActivityDestroyed(@NonNull Activity activity) {
+        // When the last activity is destroyed the user has exited the app
+        // (rotations never hit zero: the new activity is created first).
+        if (--alive <= 0 && Setting.getExitClean()) Task.execute(() -> Path.clear(Path.cache()));
     }
 
     @Override

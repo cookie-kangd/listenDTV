@@ -29,6 +29,7 @@ import com.fongmi.android.tv.setting.PlayerSetting;
 import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.ui.activity.HomeActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
+import com.fongmi.android.tv.ui.dialog.AboutDialog;
 import com.fongmi.android.tv.ui.dialog.ConfigDialog;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
@@ -90,7 +91,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.vodUrl.setText(VodConfig.getDesc());
         mBinding.liveUrl.setText(LiveConfig.getDesc());
         mBinding.wallUrl.setText(WallConfig.getDesc());
-        mBinding.versionText.setText(BuildConfig.VERSION_NAME);
         setOtherText();
         setCacheText();
     }
@@ -99,6 +99,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.themeColorText.setText(getThemeText());
         mBinding.dohText.setText(getDohList()[getDohIndex()]);
         mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
+        mBinding.exitCleanText.setText(Setting.getSwitch(Setting.getExitClean()));
         mBinding.sizeText.setText((size = ResUtil.getStringArray(R.array.select_size))[PlayerSetting.getSize()]);
     }
 
@@ -123,7 +124,8 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.player.setOnClickListener(this::onPlayer);
         mBinding.danmaku.setOnClickListener(this::onDanmaku);
         mBinding.restore.setOnClickListener(this::onRestore);
-        mBinding.version.setOnClickListener(this::onVersion);
+        mBinding.about.setOnClickListener(this::onAbout);
+        mBinding.exitClean.setOnClickListener(this::setExitClean);
         mBinding.vod.setOnLongClickListener(this::onVodEdit);
         mBinding.vodHome.setOnClickListener(this::onVodHome);
         mBinding.live.setOnLongClickListener(this::onLiveEdit);
@@ -254,8 +256,13 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         ThemeDialog.show(this);
     }
 
-    private void onVersion(View view) {
-        Updater.create().force().start(requireActivity());
+    private void setExitClean(View view) {
+        Setting.putExitClean(!Setting.getExitClean());
+        mBinding.exitCleanText.setText(Setting.getSwitch(Setting.getExitClean()));
+    }
+
+    private void onAbout(View view) {
+        AboutDialog.create().show(requireActivity());
     }
 
     private void setWallDefault(View view) {

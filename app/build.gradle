@@ -19,8 +19,8 @@ android {
         applicationId "com.listendtv.app"
         minSdk libs.versions.minSdk.get().toInteger()
         targetSdk libs.versions.targetSdk.get().toInteger()
-        versionCode 565
-        versionName "0.1.2"
+        versionCode 566
+        versionName "0.1.3"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString(), "eventBusIndex": "com.fongmi.android.tv.event.EventIndex"]

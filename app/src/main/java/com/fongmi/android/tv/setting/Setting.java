@@ -129,6 +129,14 @@ public class Setting {
         Prefers.put("listen", listen);
     }
 
+    public static boolean getExitClean() {
+        return Prefers.getBoolean("exit_clean", true);
+    }
+
+    public static void putExitClean(boolean clean) {
+        Prefers.put("exit_clean", clean);
+    }
+
     public static boolean isAdblock() {
         return Prefers.getBoolean("adblock", true);
     }

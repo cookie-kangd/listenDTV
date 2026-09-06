@@ -368,6 +368,16 @@
     <!-- Update -->
     <string name="update_version">New version <xliff:g name="name">%s</xliff:g></string>
     <string name="update_check">Checking for updates…</string>
+    <string name="update_latest">Already the latest version</string>
+    <string name="update_fail">Update check failed, please try again later</string>
+    <string name="setting_about">About</string>
+    <string name="setting_exit_clean">Clear cache on exit</string>
+    <string name="about_check">Check for updates</string>
+    <string name="about_desc">listenDTV is an open-source Android video app focused on “listening to shows”: movies, TV series and live streams, with a default battery-friendly listen mode (audio only, no video decoding), picture-in-picture, danmaku and full VOD/Live capabilities. Works great on phones, tablets and TV boxes.</string>
+    <string name="about_current">Current version: %1$s</string>
+    <string name="about_latest">Latest version: %1$s</string>
+    <string name="about_no_notes">(No release notes)</string>
+    <string name="about_latest_fail">Latest version: failed to fetch</string>
     <string name="update_confirm">Update</string>
     <string name="listen_on">Listen mode on: video rendering is off, audio only</string>
     <string name="listen_off">Listen mode off: video rendering restored</string>

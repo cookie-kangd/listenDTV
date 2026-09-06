@@ -55,7 +55,10 @@ public class TrackUtil {
     }
 
     private static TrackSelectionParameters.Builder createResetBuilder(Player player) {
-        return player.getTrackSelectionParameters().buildUpon().clearOverrides().setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, false).setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, false).setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false);
+        // Preserve the current video-disabled state (listen mode) — resetting
+        // audio/subtitle selection must never silently re-enable video rendering.
+        boolean videoDisabled = player.getTrackSelectionParameters().disabledTrackTypes.contains(C.TRACK_TYPE_VIDEO);
+        return player.getTrackSelectionParameters().buildUpon().clearOverrides().setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, videoDisabled).setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, false).setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false);
     }
 
     private static TrackInfo find(Player player, Track track) {

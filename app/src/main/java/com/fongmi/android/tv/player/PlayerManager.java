@@ -681,6 +681,9 @@ public class PlayerManager implements ParseCallback {
             if (tracks.isEmpty() || initTrack) return;
             initTrack = true;
             TrackUtil.setTrackSelection(player, Track.find(getKey()));
+            // Track selection above rebuilds the parameters; re-assert listen mode
+            // so auto track restore can never re-enable video rendering.
+            if (listenMode && engine != null) engine.setListenMode(true);
             callback.onTracksChanged();
         }
 

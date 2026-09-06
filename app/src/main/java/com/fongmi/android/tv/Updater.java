@@ -13,7 +13,6 @@ import com.fongmi.android.tv.utils.Github;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Task;
-import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
 
 import org.json.JSONArray;
@@ -28,6 +27,7 @@ public class Updater implements Download.Callback, UpdateListener {
     private String apkUrl;
     private String directUrl;
     private boolean proxyFailed;
+    private boolean manual;
 
     private Updater() {
     }
@@ -46,28 +46,34 @@ public class Updater implements Download.Callback, UpdateListener {
 
     public Updater force() {
         Notify.show(R.string.update_check);
-        Setting.putUpdate(true);
+        manual = true;
         return this;
     }
 
     public void start(FragmentActivity activity) {
-        if (!Setting.getUpdate()) return;
+        if (!manual && !Setting.getUpdate()) return;
         Task.execute(() -> doInBackground(activity));
     }
 
     private void doInBackground(FragmentActivity activity) {
         try {
-            JSONObject object = new JSONObject(OkHttp.string(Github.getApi()));
+            JSONObject object = Github.fetchLatest();
             String tag = object.optString("tag_name");
             String desc = object.optString("body");
-            if (!isNewer(tag)) return;
+            if (!isNewer(tag)) {
+                if (manual) App.post(() -> Notify.show(R.string.update_latest));
+                return;
+            }
             String asset = findApk(object);
-            if (asset == null) return;
+            if (asset == null) {
+                if (manual) App.post(() -> Notify.show(R.string.update_fail));
+                return;
+            }
             apkUrl = Github.getApk(tag, asset);
             String url = apkUrl;
             App.post(() -> show(activity, tag, desc, url));
         } catch (Exception e) {
-            e.printStackTrace();
+            if (manual) App.post(() -> Notify.show(R.string.update_fail));
         }
     }
 

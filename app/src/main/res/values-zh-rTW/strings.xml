@@ -368,6 +368,16 @@
     <!-- Update -->
     <string name="update_version">發現新版本 <xliff:g name="name">%s</xliff:g></string>
     <string name="update_check">正在檢查更新…</string>
+    <string name="update_latest">已是最新版本</string>
+    <string name="update_fail">檢查更新失敗，請稍後重試</string>
+    <string name="setting_about">關於</string>
+    <string name="setting_exit_clean">退出時清理緩存</string>
+    <string name="about_check">檢查更新</string>
+    <string name="about_desc">listenDTV 是一款開源的 Android 影音應用，主打「聽劇」：電影、電視劇、直播一站聚合，預設開啟省電聽播模式（只出聲音不解碼畫面），支援子母畫面、彈幕與完整的點播/直播能力，手機、平板、電視盒子均可使用。</string>
+    <string name="about_current">當前版本：%1$s</string>
+    <string name="about_latest">最新版本：%1$s</string>
+    <string name="about_no_notes">（暫無更新說明）</string>
+    <string name="about_latest_fail">最新版本：獲取失敗</string>
     <string name="update_confirm">更新</string>
     <string name="listen_on">聽播模式已開啟：不渲染畫面，僅播放聲音，更省電</string>
     <string name="listen_off">聽播模式已關閉：恢復畫面渲染</string>

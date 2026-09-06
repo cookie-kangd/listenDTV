@@ -1257,7 +1257,15 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
     }
 
     private void checkListenImg() {
-        mBinding.control.listen.setImageResource(Setting.getListen() ? R.drawable.ic_control_listen_on : R.drawable.ic_control_listen_off);
+        boolean enabled = Setting.getListen();
+        mBinding.control.listen.setImageResource(enabled ? R.drawable.ic_control_listen_on : R.drawable.ic_control_listen_off);
+        if (enabled) {
+            mBinding.control.listen.clearColorFilter();
+            mBinding.control.listen.setImageAlpha(255);
+        } else {
+            mBinding.control.listen.setColorFilter(Color.WHITE);
+            mBinding.control.listen.setImageAlpha(110);
+        }
     }
 
     private void onListen() {

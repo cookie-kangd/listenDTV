@@ -86,71 +86,81 @@
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/center"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_alignParentStart="true"
+        android:layout_toLeftOf="@id/right"
+        android:layout_centerVertical="true"
         android:gravity="center"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/listen"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="20dp"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:scaleType="center"
+            android:scaleType="fitCenter"
             android:src="@drawable/ic_control_listen_on" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/rewind"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="20dp"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:background="@drawable/shape_control"
+            android:scaleType="fitCenter"
             android:src="@drawable/exo_icon_rewind" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/prev"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:background="@drawable/shape_control"
+            android:scaleType="fitCenter"
             android:src="@drawable/exo_icon_previous"
             android:visibility="gone"
             tools:visibility="visible" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/play"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="20dp"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1.4"
             android:background="@drawable/shape_control"
+            android:scaleType="fitCenter"
             android:src="@drawable/exo_icon_play" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/next"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:background="@drawable/shape_control"
+            android:scaleType="fitCenter"
             android:src="@drawable/exo_icon_next"
             android:visibility="gone"
             tools:visibility="visible" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/forward"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="20dp"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:background="@drawable/shape_control"
+            android:scaleType="fitCenter"
             android:src="@drawable/exo_icon_fastforward" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/pip"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:scaleType="center"
+            android:scaleType="fitCenter"
             android:src="@drawable/ic_control_pip" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>

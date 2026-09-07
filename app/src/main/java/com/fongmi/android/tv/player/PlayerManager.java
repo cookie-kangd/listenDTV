@@ -66,6 +66,9 @@ public class PlayerManager implements ParseCallback {
     private boolean listenMode;
     private boolean initTrack;
     private int retry;
+    private int networkRetry;
+    private static final int MAX_NETWORK_RETRY = 3;
+    private static final long NETWORK_RETRY_DELAY = 1500;
     private int decode;
 
     public PlayerManager(Callback callback) {
@@ -454,6 +457,7 @@ public class PlayerManager implements ParseCallback {
     public void reset() {
         App.removeCallbacks(runnable);
         retry = 0;
+        networkRetry = 0;
     }
 
     public void clear() {
@@ -494,6 +498,40 @@ public class PlayerManager implements ParseCallback {
         PlaybackSnapshot snapshot = PlaybackSnapshot.capture(player);
         startCurrent(snapshot.positionMs());
         snapshot.restore(player);
+    }
+
+    /**
+     * Re-prepare the current media item from the last known position after a
+     * transient network failure. Driven by {@link #onPlayerError} when the error
+     * is identified as a network issue.
+     */
+    private void retryNetwork() {
+        if (spec == null) return;
+        startCurrent(getPosition());
+    }
+
+    /**
+     * Detects playback failures caused by connectivity problems (as opposed to
+     * decode/format errors) so we can auto-retry instead of surfacing a fatal
+     * error immediately.
+     */
+    private boolean isNetworkError(PlaybackException e) {
+        switch (e.errorCode) {
+            case PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED:
+            case PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT:
+            case PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS:
+            case PlaybackException.ERROR_CODE_TIMEOUT:
+                return true;
+        }
+        Throwable cause = e.getCause();
+        if (cause != null) {
+            String name = cause.getClass().getName();
+            if (name.contains("Socket") || name.contains("Timeout") || name.contains("UnknownHost")
+                    || name.contains("ConnectException") || name.contains("HttpTimeout") || name.contains("SSLException")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void setDecode(int decode) {
@@ -668,7 +706,10 @@ public class PlayerManager implements ParseCallback {
         @Override
         public void onPlaybackStateChanged(int state) {
             if (state == Player.STATE_READY || state == Player.STATE_ENDED) App.removeCallbacks(runnable);
-            if (state == Player.STATE_READY) startPreloadIfReady();
+            if (state == Player.STATE_READY) {
+                networkRetry = 0;
+                startPreloadIfReady();
+            }
         }
 
         @Override
@@ -700,6 +741,19 @@ public class PlayerManager implements ParseCallback {
         @Override
         public void onPlayerError(@NonNull PlaybackException e) {
             if (spec == null) return;
+            if (isNetworkError(e)) {
+                if (networkRetry < MAX_NETWORK_RETRY) {
+                    networkRetry++;
+                    Notify.show(ResUtil.getString(R.string.error_network_retry, networkRetry, MAX_NETWORK_RETRY));
+                    App.post(PlayerManager.this::retryNetwork, NETWORK_RETRY_DELAY);
+                    return;
+                }
+                networkRetry = 0;
+                App.removeCallbacks(runnable);
+                callback.onError(ResUtil.getString(R.string.error_network));
+                return;
+            }
+            networkRetry = 0;
             PlayerEngine.ErrorAction action = engine.handleError(e);
             if (action != PlayerEngine.ErrorAction.RECOVERED) App.removeCallbacks(runnable);
             switch (action) {

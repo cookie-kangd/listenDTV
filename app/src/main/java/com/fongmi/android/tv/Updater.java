@@ -1,5 +1,6 @@
 package com.fongmi.android.tv;
 
+import android.content.Context;
 import android.view.View;
 
 import androidx.fragment.app.FragmentActivity;
@@ -13,7 +14,6 @@ import com.fongmi.android.tv.utils.Github;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Task;
-import com.github.catvod.utils.Path;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -37,7 +37,22 @@ public class Updater implements Download.Callback, UpdateListener {
     }
 
     private File getFile() {
-        return Path.cache("update.apk");
+        // Cache the downloaded APK in an app-private directory that never requires
+        // storage permission (covers low Android versions where writing elsewhere
+        // triggers "permission defined" errors). Fall back to internal cache if the
+        // external cache is unavailable or not writable.
+        Context ctx = App.get();
+        File dir = ctx.getExternalCacheDir();
+        if (dir == null || !dir.canWrite()) dir = ctx.getCacheDir();
+        return new File(dir, "update.apk");
+    }
+
+    private void deleteFile() {
+        try {
+            File f = getFile();
+            if (f != null && f.exists() && !f.delete()) f.deleteOnExit();
+        } catch (Exception ignored) {
+        }
     }
 
     private String getApkName() {
@@ -123,6 +138,7 @@ public class Updater implements Download.Callback, UpdateListener {
     @Override
     public void onConfirm(View view) {
         view.setEnabled(false);
+        deleteFile();
         download = Download.create(apkUrl, getFile());
         download.start(this);
     }
@@ -131,6 +147,7 @@ public class Updater implements Download.Callback, UpdateListener {
     public void onCancel(View view) {
         Setting.putUpdate(false);
         if (download != null) download.cancel();
+        deleteFile();
         dismiss();
     }
 
@@ -155,6 +172,7 @@ public class Updater implements Download.Callback, UpdateListener {
             download.start(this);
             return;
         }
+        deleteFile();
         Notify.show(msg);
         dismiss();
     }

@@ -129,6 +129,14 @@ public class Setting {
         Prefers.put("listen", listen);
     }
 
+    public static String getListenMap() {
+        return Prefers.getString("listen_map");
+    }
+
+    public static void putListenMap(String value) {
+        Prefers.put("listen_map", value);
+    }
+
     public static boolean getExitClean() {
         return Prefers.getBoolean("exit_clean", true);
     }

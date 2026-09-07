@@ -112,6 +112,7 @@ import com.fongmi.android.tv.utils.UrlUtil;
 import com.fongmi.android.tv.utils.Util;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONObject;
 
 import java.util.List;
 import java.util.Objects;
@@ -1256,8 +1257,31 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         mBinding.control.danmaku.setImageResource(DanmakuSetting.isShow() ? R.drawable.ic_control_danmaku_on : R.drawable.ic_control_danmaku_off);
     }
 
+    private boolean isListen() {
+        // Listen mode is remembered PER VIDEO (site+vod key): toggling one video
+        // never affects the others. Videos without an override default to ON.
+        try {
+            JSONObject map = new JSONObject(Setting.getListenMap());
+            String key = getHistoryKey();
+            if (map.has(key)) return map.getBoolean(key);
+        } catch (Exception ignored) {
+        }
+        return true;
+    }
+
+    private void setListen(boolean enabled) {
+        try {
+            JSONObject map = new JSONObject(Setting.getListenMap());
+            // Soft cap so the preference can never grow unbounded.
+            if (!map.has(getHistoryKey()) && map.length() >= 500) map = new JSONObject();
+            map.put(getHistoryKey(), enabled);
+            Setting.putListenMap(map.toString());
+        } catch (Exception ignored) {
+        }
+    }
+
     private void checkListenImg() {
-        boolean enabled = Setting.getListen();
+        boolean enabled = isListen();
         mBinding.control.listen.setImageResource(enabled ? R.drawable.ic_control_listen_on : R.drawable.ic_control_listen_off);
         if (enabled) {
             mBinding.control.listen.clearColorFilter();
@@ -1269,8 +1293,8 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
     }
 
     private void onListen() {
-        boolean enabled = !Setting.getListen();
-        Setting.putListen(enabled);
+        boolean enabled = !isListen();
+        setListen(enabled);
         if (service() != null) player().setListenMode(enabled);
         setAudioOnly(enabled);
         checkListenImg();
@@ -1341,7 +1365,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
     protected void onPrepare() {
         setPlaybackMode();
         checkControl();
-        if (service() != null) player().setListenMode(Setting.getListen());
+        if (service() != null) player().setListenMode(isListen());
     }
 
     @Override
@@ -1669,7 +1693,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
     protected void onStart() {
         super.onStart();
         mClock.stop().start();
-        setAudioOnly(Setting.getListen());
+        setAudioOnly(isListen());
         setStop(false);
     }
 

@@ -39,18 +39,30 @@ public class Updater implements Download.Callback, UpdateListener {
     private File getFile() {
         // Cache the downloaded APK in an app-private directory that never requires
         // storage permission (covers low Android versions where writing elsewhere
-        // triggers "permission defined" errors). Fall back to internal cache if the
-        // external cache is unavailable or not writable.
+        // triggers "permission defined" errors). The name is unique per target
+        // version so a file left by an older OTA can never be mixed up with the
+        // new download. Fall back to internal cache if external is unavailable.
         Context ctx = App.get();
         File dir = ctx.getExternalCacheDir();
         if (dir == null || !dir.canWrite()) dir = ctx.getCacheDir();
-        return new File(dir, "update.apk");
+        return new File(dir, "update_" + BuildConfig.VERSION_NAME + ".apk");
     }
 
     private void deleteFile() {
+        // Wipe the current target file plus any legacy update APKs (older naming
+        // scheme) so a previous download can never be mistaken for the new one.
         try {
-            File f = getFile();
-            if (f != null && f.exists() && !f.delete()) f.deleteOnExit();
+            Context ctx = App.get();
+            File[] roots = {ctx.getExternalCacheDir(), ctx.getCacheDir()};
+            for (File dir : roots) {
+                if (dir == null) continue;
+                File[] files = dir.listFiles();
+                if (files == null) continue;
+                for (File f : files) {
+                    String name = f.getName();
+                    if (name.equals("update.apk") || name.startsWith("update_")) f.delete();
+                }
+            }
         } catch (Exception ignored) {
         }
     }

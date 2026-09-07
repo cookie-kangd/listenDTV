@@ -4,7 +4,6 @@ import android.app.PendingIntent;
 import android.app.SearchManager;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.MenuItem;
@@ -82,23 +81,10 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
     protected void initView(Bundle savedInstanceState) {
         orientation = getResources().getConfiguration().orientation;
         mBinding.navigation.setOnItemSelectedListener(this);
-        applyNavBackground();
         PermissionUtil.requestNotify(this);
         initFragment(savedInstanceState);
         Updater.create().start(this);
         initConfig();
-    }
-
-    /**
-     * The frosted-glass bottom bar relies on modern drawable compositing. On older
-     * Android versions where it may not render correctly, fall back to the original
-     * transparent background so the bar never looks broken.
-     */
-    private void applyNavBackground() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            mBinding.navigation.setBackgroundResource(android.R.color.transparent);
-            mBinding.navigation.setElevation(0);
-        }
     }
 
     @Override

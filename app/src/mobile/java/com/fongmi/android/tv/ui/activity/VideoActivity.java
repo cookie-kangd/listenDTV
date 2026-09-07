@@ -1257,24 +1257,39 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         mBinding.control.danmaku.setImageResource(DanmakuSetting.isShow() ? R.drawable.ic_control_danmaku_on : R.drawable.ic_control_danmaku_off);
     }
 
+    /**
+     * Parse the per-video listen overrides. The preference starts out empty and
+     * an empty string is NOT valid JSON, so it must never be handed to the
+     * JSONObject constructor directly (that would throw and silently disable
+     * persistence, which is exactly how listen mode got stuck off).
+     */
+    private JSONObject listenMap() {
+        String raw = Setting.getListenMap();
+        if (TextUtils.isEmpty(raw)) return new JSONObject();
+        try {
+            return new JSONObject(raw);
+        } catch (Exception e) {
+            return new JSONObject();
+        }
+    }
+
     private boolean isListen() {
         // Listen mode is remembered PER VIDEO (site+vod key): toggling one video
         // never affects the others. Videos without an override default to ON.
         try {
-            JSONObject map = new JSONObject(Setting.getListenMap());
-            String key = getHistoryKey();
-            if (map.has(key)) return map.getBoolean(key);
+            return listenMap().optBoolean(getHistoryKey(), true);
         } catch (Exception ignored) {
+            return true;
         }
-        return true;
     }
 
     private void setListen(boolean enabled) {
         try {
-            JSONObject map = new JSONObject(Setting.getListenMap());
+            JSONObject map = listenMap();
+            String key = getHistoryKey();
             // Soft cap so the preference can never grow unbounded.
-            if (!map.has(getHistoryKey()) && map.length() >= 500) map = new JSONObject();
-            map.put(getHistoryKey(), enabled);
+            if (!map.has(key) && map.length() >= 500) map = new JSONObject();
+            map.put(key, enabled);
             Setting.putListenMap(map.toString());
         } catch (Exception ignored) {
         }
@@ -1295,6 +1310,9 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
     private void onListen() {
         boolean enabled = !isListen();
         setListen(enabled);
+        // Re-read the stored value so the icon, the player and the toast always
+        // reflect what was really persisted.
+        enabled = isListen();
         if (service() != null) player().setListenMode(enabled);
         setAudioOnly(enabled);
         checkListenImg();

@@ -8,6 +8,7 @@ public class Github {
 
     public static final String REPO = "cookie-kangd/listenDTV";
     public static final String PROXY = "https://v4.gh-proxy.org/";
+    public static final String PROXY_ALT = "https://gh-proxy.org/";
     private static final String DOWNLOAD = "https://github.com/" + REPO + "/releases/download/";
 
     public static String getApi() {
@@ -34,6 +35,15 @@ public class Github {
         // is unique per tag, but shared mirrors have been observed serving stale
         // cached bodies, so each download request must look fresh to every cache.
         return bust(PROXY + getApkDirect(tag, name));
+    }
+
+    /**
+     * Same asset through the alternate mirror. CDN nodes cache independently,
+     * so when one node serves stale bytes the alternate is a different cache
+     * pool and very likely a cache miss.
+     */
+    public static String getApkAlt(String tag, String name) {
+        return bust(PROXY_ALT + getApkDirect(tag, name));
     }
 
     public static String getApkDirect(String tag, String name) {

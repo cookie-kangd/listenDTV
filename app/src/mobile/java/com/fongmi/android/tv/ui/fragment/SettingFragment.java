@@ -129,6 +129,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.restore.setOnClickListener(this::onRestore);
         mBinding.about.setOnClickListener(this::onAbout);
         mBinding.exitClean.setOnClickListener(this::setExitClean);
+        mBinding.autoUpdate.setOnClickListener(this::setAutoUpdate);
         mBinding.highRefresh.setOnClickListener(this::setHighRefresh);
         mBinding.tv.setOnClickListener(this::setTv);
         mBinding.vod.setOnLongClickListener(this::onVodEdit);
@@ -264,6 +265,11 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     private void setExitClean(View view) {
         Setting.putExitClean(!Setting.getExitClean());
         mBinding.exitCleanText.setText(Setting.getSwitch(Setting.getExitClean()));
+    }
+
+    private void setAutoUpdate(View view) {
+        Setting.putAutoUpdate(!Setting.getAutoUpdate());
+        mBinding.autoUpdateText.setText(Setting.getSwitch(Setting.getAutoUpdate()));
     }
 
     private void setHighRefresh(View view) {

@@ -350,8 +350,6 @@
     <string name="error_play_parse">播放地址解析失败</string>
     <string name="error_play_drm">此设备不支持所需的 DRM scheme</string>
     <string name="error_play_url">播放地址加载失败</string>
-    <string name="error_network_retry">网络不稳定，正在重试（%1$d/%2$d）…</string>
-    <string name="error_network">网络错误，请检查网络连接</string>
     <string name="error_play_flag">暂无线路数据</string>
     <string name="error_play_timeout">连接超时</string>
     <string name="error_audio_effect_unsupported">当前播放方式不支持音质设置</string>

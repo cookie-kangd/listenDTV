@@ -153,6 +153,14 @@ public class Setting {
         Prefers.put("tv", value);
     }
 
+    public static boolean getAutoUpdate() {
+        return Prefers.getBoolean("auto_update", true);
+    }
+
+    public static void putAutoUpdate(boolean value) {
+        Prefers.put("auto_update", value);
+    }
+
     public static boolean isAdblock() {
         return Prefers.getBoolean("adblock", true);
     }

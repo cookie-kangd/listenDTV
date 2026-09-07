@@ -376,6 +376,7 @@
     <string name="setting_tv">开启电视</string>
     <string name="setting_about">关于</string>
     <string name="setting_exit_clean">退出时清理缓存</string>
+    <string name="setting_auto_update">自动检查更新</string>
     <string name="about_check">检查更新</string>
     <string name="about_desc">listenDTV 是一款开源的 Android 影音应用，主打"听剧"：电影、电视剧、直播一站聚合，默认开启省电听播模式（只出声音不解码画面），支持画中画、弹幕与完整的点播/直播能力，手机、平板、电视盒子均可使用。</string>
     <string name="about_current">当前版本：%1$s</string>

@@ -17,8 +17,9 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.Task;
 import com.fongmi.hook.Hook;
 import com.github.catvod.Init;
-import com.github.catvod.utils.Path;
 import com.google.gson.Gson;
+
+import java.io.File;
 
 public class App extends Application implements Application.ActivityLifecycleCallbacks {
 
@@ -94,7 +95,36 @@ public class App extends Application implements Application.ActivityLifecycleCal
         // Covers exits that skipped the onDestroy cleanup, e.g. the user swiping
         // the app away from recents (the process is killed without any callback).
         // Clearing at launch guarantees the cache never survives a restart.
-        if (Setting.getExitClean()) Task.execute(() -> Path.clear(Path.cache()));
+        if (Setting.getExitClean()) Task.execute(App::clearAppCache);
+    }
+
+    public static void clearAppCache() {
+        // The size shown in settings covers the whole app cache (internal +
+        // external, including nested folders), while Path.clear() only wipes a
+        // single directory shallowly -- that mismatch is why leftover cache
+        // kept reappearing. Recursively wipe BOTH cache roots instead.
+        App app = get();
+        app.clearDir(app.getCacheDir());
+        File external = app.getExternalCacheDir();
+        if (external != null) app.clearDir(external);
+    }
+
+    private void clearDir(File dir) {
+        try {
+            File[] files = dir.listFiles();
+            if (files == null) return;
+            for (File file : files) delete(file);
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void delete(File file) {
+        try {
+            File[] children = file.listFiles();
+            if (children != null) for (File child : children) delete(child);
+            if (!file.delete()) file.deleteOnExit();
+        } catch (Exception ignored) {
+        }
     }
 
     @Override
@@ -126,7 +156,7 @@ public class App extends Application implements Application.ActivityLifecycleCal
     public void onActivityDestroyed(@NonNull Activity activity) {
         // When the last activity is destroyed the user has exited the app
         // (rotations never hit zero: the new activity is created first).
-        if (--alive <= 0 && Setting.getExitClean()) Task.execute(() -> Path.clear(Path.cache()));
+        if (--alive <= 0 && Setting.getExitClean()) Task.execute(App::clearAppCache);
     }
 
     @Override

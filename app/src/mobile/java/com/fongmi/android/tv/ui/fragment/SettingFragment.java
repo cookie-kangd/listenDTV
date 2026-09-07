@@ -100,6 +100,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.dohText.setText(getDohList()[getDohIndex()]);
         mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
         mBinding.exitCleanText.setText(Setting.getSwitch(Setting.getExitClean()));
+        mBinding.autoUpdateText.setText(Setting.getSwitch(Setting.getAutoUpdate()));
         mBinding.highRefreshText.setText(Setting.getSwitch(Setting.getHighRefresh()));
         mBinding.tvText.setText(Setting.getSwitch(Setting.getTv()));
         mBinding.sizeText.setText((size = ResUtil.getStringArray(R.array.select_size))[PlayerSetting.getSize()]);
@@ -325,11 +326,12 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     }
 
     private void onCache(View view) {
-        FileUtil.clearCache(new Callback() {
-            @Override
-            public void success() {
-                setCacheText();
-            }
+        // Route the manual clear through the same deep cleaner used on exit:
+        // it wipes internal + external cache recursively, so the size shown
+        // here actually drops to ~0 instead of only clearing one folder.
+        com.fongmi.android.tv.utils.Task.execute(() -> {
+            com.fongmi.android.tv.App.clearAppCache();
+            com.fongmi.android.tv.App.post(this::setCacheText);
         });
     }
 

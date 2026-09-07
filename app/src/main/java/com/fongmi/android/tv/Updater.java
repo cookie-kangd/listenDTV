@@ -66,7 +66,9 @@ public class Updater implements Download.Callback, UpdateListener {
     }
 
     public void start(FragmentActivity activity) {
-        if (!manual && !Setting.getUpdate()) return;
+        // Silent auto-check only when the user-facing switch is on AND the
+        // in-app "remind" flag hasn't been dismissed; manual checks bypass both.
+        if (!manual && (!Setting.getAutoUpdate() || !Setting.getUpdate())) return;
         Task.execute(() -> doInBackground(activity));
     }
 

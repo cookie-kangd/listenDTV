@@ -402,6 +402,46 @@
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
+            <!-- 局域网同步：与另一台装了本 App 的设备互换播放历史 / 收藏 -->
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/shape_item"
+                android:orientation="horizontal"
+                android:padding="0dp">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/historySync"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:paddingStart="12dp"
+                    android:paddingTop="8dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="8dp"
+                    android:text="@string/setting_history_sync"
+                    android:textColor="@color/white"
+                    android:textSize="16sp" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/keepSync"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:gravity="end"
+                    android:paddingStart="12dp"
+                    android:paddingTop="8dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="8dp"
+                    android:text="@string/setting_keep_sync"
+                    android:textColor="@color/white"
+                    android:textSize="16sp" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/exitClean"
                 android:layout_width="match_parent"

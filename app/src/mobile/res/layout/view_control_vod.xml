@@ -84,13 +84,21 @@
         </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.appcompat.widget.LinearLayoutCompat>
 
+    <!--
+        Centre transport row.
+        It used to be pinned between the left/right rails (layout_toRightOf /
+        layout_toLeftOf) while also asking for centerInParent, which left it
+        sitting on the rail band's centre instead of the screen centre. Now it
+        is a wrap_content row centred on both axes, so the play button is always
+        exactly in the middle of the player view. VideoActivity scales the
+        children at runtime so the row grows with the screen width.
+    -->
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/center"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/left"
-        android:layout_toLeftOf="@id/right"
-        android:layout_centerInParent="true"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
         android:gravity="center"
         android:orientation="horizontal">
 

@@ -14,11 +14,6 @@
         android:orientation="horizontal">
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/episodes"
-            style="@style/Control"
-            android:text="@string/detail_episode" />
-
-        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/parse"
             style="@style/Control"
             android:text="@string/parse"
@@ -114,6 +109,12 @@
             android:id="@+id/ending"
             style="@style/Control"
             android:text="@string/play_ed" />
+
+        <!-- 选集：挪到右对齐组的最后一位，也就是整条栏最右边的那个按钮 -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/episodes"
+            style="@style/Control"
+            android:text="@string/detail_episode" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 </HorizontalScrollView>

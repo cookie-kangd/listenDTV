@@ -35,6 +35,7 @@ import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.RestoreDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
+import com.fongmi.android.tv.ui.dialog.SyncDialog;
 import com.fongmi.android.tv.ui.dialog.ThemeDialog;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
@@ -127,7 +128,9 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.player.setOnClickListener(this::onPlayer);
         mBinding.danmaku.setOnClickListener(this::onDanmaku);
         mBinding.restore.setOnClickListener(this::onRestore);
+        mBinding.keepSync.setOnClickListener(this::onKeepSync);
         mBinding.about.setOnClickListener(this::onAbout);
+        mBinding.historySync.setOnClickListener(this::onHistorySync);
         mBinding.exitClean.setOnClickListener(this::setExitClean);
         mBinding.autoUpdate.setOnClickListener(this::setAutoUpdate);
         mBinding.highRefresh.setOnClickListener(this::setHighRefresh);
@@ -375,6 +378,19 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         VodConfig.get().init().load(getCallback());
         LiveConfig.get().init().load();
         WallConfig.get().init().load();
+    }
+
+    /**
+     * 同步播放历史：复用 App 里已有的局域网同步通道（设备发现 + 内置
+     * HTTP 服务 /action?do=sync），把本机历史推给同网络下的另一台设备，
+     * 对方收到后自动按 vodName 合并，不会覆盖更新的记录。
+     */
+    private void onHistorySync(View view) {
+        SyncDialog.create().history().show(requireActivity());
+    }
+
+    private void onKeepSync(View view) {
+        SyncDialog.create().keep().show(requireActivity());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

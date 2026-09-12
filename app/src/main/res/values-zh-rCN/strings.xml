@@ -272,6 +272,8 @@
     <string name="setting_cache">缓存</string>
     <string name="setting_backup">备份</string>
     <string name="setting_restore">恢复</string>
+    <string name="setting_history_sync">同步播放历史</string>
+    <string name="setting_keep_sync">同步收藏</string>
     <string name="setting_version">版本</string>
     <string name="setting_choose">选择</string>
     <string name="setting_off">关</string>

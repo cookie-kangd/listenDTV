@@ -143,6 +143,16 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
     private boolean useParse;
     private boolean rotate;
 
+    /**
+     * Baseline geometry of the centre transport row (width, height, 4 margins,
+     * 4 paddings), captured from the XML the first time we scale it so that
+     * rotating back and forth can never compound the scale factor.
+     */
+    private static final int CENTER_SLOTS = 8;
+    private final int[][] mCenterBase = new int[CENTER_SLOTS][10];
+    private int mCenterCount;
+    private boolean mCenterCaptured;
+
     public static void push(FragmentActivity activity, String text) {
         Uri uri = UrlUtil.uri(text);
         if (FileChooser.isFileSource(uri)) FileChooser.getFileUri(uri, fileUri -> file(activity, fileUri));
@@ -313,6 +323,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         mPiP = new PiP();
         checkDanmakuImg();
         checkListenImg();
+        applyCenterScale();
         setRecyclerView();
         setVideoView();
         setViewModel();
@@ -1104,6 +1115,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         mBinding.control.title.setVisibility(View.VISIBLE);
         setRotate(player().isPortrait());
         mKeyDown.resetScale();
+        applyCenterScale();
         App.post(mR3, 2000);
         hideControl();
     }
@@ -1117,6 +1129,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         mBinding.control.title.setVisibility(View.INVISIBLE);
         mBinding.video.setLayoutParams(mFrameParams);
         mKeyDown.resetScale();
+        applyCenterScale();
         App.post(mR3, 2000);
         setRotate(false);
         hideControl();
@@ -1255,6 +1268,60 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
 
     private void checkDanmakuImg() {
         mBinding.control.danmaku.setImageResource(DanmakuSetting.isShow() ? R.drawable.ic_control_danmaku_on : R.drawable.ic_control_danmaku_off);
+    }
+
+    /**
+     * Scale the centre transport row with the screen width. The buttons are
+     * fixed dp in the XML, which reads fine on a ~360dp portrait phone but is
+     * lost on a landscape phone or tablet, so grow them off the XML baseline.
+     * Safe to call repeatedly: sizes always come from the captured baseline.
+     */
+    private void applyCenterScale() {
+        View centerView = mBinding.control.center;
+        if (!(centerView instanceof ViewGroup center) || center.getChildCount() == 0) return;
+        if (!mCenterCaptured) captureCenterBase(center);
+        float scale = centerScale();
+        int count = Math.min(center.getChildCount(), mCenterCount);
+        for (int i = 0; i < count; i++) {
+            View child = center.getChildAt(i);
+            if (!(child.getLayoutParams() instanceof ViewGroup.MarginLayoutParams lp)) continue;
+            int[] base = mCenterBase[i];
+            lp.width = Math.round(base[0] * scale);
+            lp.height = Math.round(base[1] * scale);
+            lp.setMargins(Math.round(base[2] * scale), Math.round(base[3] * scale), Math.round(base[4] * scale), Math.round(base[5] * scale));
+            child.setPadding(Math.round(base[6] * scale), Math.round(base[7] * scale), Math.round(base[8] * scale), Math.round(base[9] * scale));
+            child.setLayoutParams(lp);
+        }
+    }
+
+    private void captureCenterBase(ViewGroup center) {
+        mCenterCount = Math.min(center.getChildCount(), CENTER_SLOTS);
+        for (int i = 0; i < mCenterCount; i++) {
+            View child = center.getChildAt(i);
+            int[] base = mCenterBase[i];
+            if (child.getLayoutParams() instanceof ViewGroup.MarginLayoutParams lp) {
+                base[0] = lp.width;
+                base[1] = lp.height;
+                base[2] = lp.leftMargin;
+                base[3] = lp.topMargin;
+                base[4] = lp.rightMargin;
+                base[5] = lp.bottomMargin;
+            }
+            base[6] = child.getPaddingLeft();
+            base[7] = child.getPaddingTop();
+            base[8] = child.getPaddingRight();
+            base[9] = child.getPaddingBottom();
+        }
+        mCenterCaptured = true;
+    }
+
+    private float centerScale() {
+        float density = ResUtil.getDisplayMetrics().density;
+        if (density <= 0f) return 1f;
+        float widthDp = ResUtil.getScreenWidth() / density;
+        // 420dp is about where the XML baseline already looks right, so narrow
+        // portrait phones keep their size and anything wider scales up from it.
+        return Math.clamp(widthDp / 420f, 1f, 1.7f);
     }
 
     /**
@@ -1699,6 +1766,8 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         if (isAutoRotate() && isPort() && newConfig.orientation == Configuration.ORIENTATION_PORTRAIT && !isRotate() && !isLock()) exitFullscreen();
         if (isAutoRotate() && isPort() && newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) enterFullscreen();
         if (isFullscreen()) Util.hideSystemUI(this);
+        // Posted so the new window metrics are in place before we measure again.
+        App.post(this::applyCenterScale);
     }
 
     @Override

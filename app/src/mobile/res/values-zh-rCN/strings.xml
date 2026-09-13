@@ -64,17 +64,5 @@
     <string name="device_scan_found">扫描完成，找到 %1$d 台设备。</string>
     <string name="device_scan_empty">未发现设备。请确认两台设备都已打开本应用并连接同一个 Wi-Fi。</string>
     <string name="device_pull_done">已拉取对方数据。</string>
-    <string name="cloud_title">云端同步（WebDAV）</string>
-    <string name="cloud_url_hint">WebDAV 地址，如 https://dav.jianguoyun.com/dav/</string>
-    <string name="cloud_user_hint">账号</string>
-    <string name="cloud_pass_hint">密码 / 应用密码</string>
-    <string name="cloud_tip">两台设备填同一个账号：一台点"上传"，另一台点"下载"。推荐坚果云（免费支持 WebDAV，需在官网创建应用密码）。</string>
-    <string name="cloud_upload">上传</string>
-    <string name="cloud_download">下载</string>
-    <string name="cloud_up_ok">已上传到云端。</string>
-    <string name="cloud_down_ok">已从云端下载并合并。</string>
-    <string name="cloud_bad_config">请填写 WebDAV 地址。</string>
-    <string name="cloud_bad_auth">坚果云认证失败（HTTP 401）。请检查账号与应用密码是否正确。</string>
-    <string name="cloud_bad_data">云端数据为空或无法识别。</string>
 
 </resources>

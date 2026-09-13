@@ -105,30 +105,6 @@ public class Setting {
         Prefers.put("sync_mode", Math.clamp(mode, MIN_SYNC_MODE, MAX_SYNC_MODE));
     }
 
-    public static String getWebDavUrl() {
-        return Prefers.getString("webdav_url");
-    }
-
-    public static void putWebDavUrl(String url) {
-        Prefers.put("webdav_url", url);
-    }
-
-    public static String getWebDavUser() {
-        return Prefers.getString("webdav_user");
-    }
-
-    public static void putWebDavUser(String user) {
-        Prefers.put("webdav_user", user);
-    }
-
-    public static String getWebDavPass() {
-        return Prefers.getString("webdav_pass");
-    }
-
-    public static void putWebDavPass(String pass) {
-        Prefers.put("webdav_pass", pass);
-    }
-
     public static boolean isIncognito() {
         return Prefers.getBoolean("incognito");
     }

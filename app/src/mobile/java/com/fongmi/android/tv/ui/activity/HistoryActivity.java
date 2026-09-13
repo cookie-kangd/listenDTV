@@ -67,7 +67,7 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
     }
 
     private void onSync() {
-        SyncDialog.create().history().show(this);
+        SyncDialog.create().show(this);
     }
 
     private void onDelete() {

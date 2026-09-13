@@ -74,6 +74,7 @@
     <string name="cloud_up_ok">已上传到云端。</string>
     <string name="cloud_down_ok">已从云端下载并合并。</string>
     <string name="cloud_bad_config">请填写 WebDAV 地址。</string>
+    <string name="cloud_bad_auth">坚果云认证失败（HTTP 401）。请检查账号与应用密码是否正确。</string>
     <string name="cloud_bad_data">云端数据为空或无法识别。</string>
 
 </resources>

@@ -74,6 +74,7 @@
     <string name="cloud_up_ok">Uploaded to the cloud.</string>
     <string name="cloud_down_ok">Downloaded and merged.</string>
     <string name="cloud_bad_config">WebDAV URL is required.</string>
+    <string name="cloud_bad_auth">WebDAV auth failed (HTTP 401). Check the account and app password.</string>
     <string name="cloud_bad_data">Cloud data is empty or unreadable.</string>
 
 </resources>

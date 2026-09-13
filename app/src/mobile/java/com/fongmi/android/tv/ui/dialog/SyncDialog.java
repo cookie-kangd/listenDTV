@@ -303,7 +303,15 @@ public class SyncDialog extends BaseBottomSheetDialog implements DeviceAdapter.O
         root.addView(user);
         root.addView(pass);
         root.addView(tip);
-        new AlertDialog.Builder(requireActivity()).setTitle(R.string.cloud_title).setView(root).setPositiveButton(R.string.cloud_upload, (d, w) -> cloud(true, url, user, pass)).setNeutralButton(R.string.cloud_download, (d, w) -> cloud(false, url, user, pass)).setNegativeButton(android.R.string.cancel, null).show();
+        AlertDialog dialog = new AlertDialog.Builder(requireActivity()).setTitle(R.string.cloud_title).setView(root).setPositiveButton(R.string.cloud_upload, (d, w) -> cloud(true, url, user, pass)).setNeutralButton(R.string.cloud_download, (d, w) -> cloud(false, url, user, pass)).setNegativeButton(android.R.string.cancel, null).create();
+        // Save whatever is typed no matter how the dialog closes - cancel/back included,
+        // so a password entered "just to store it" is never silently dropped.
+        dialog.setOnDismissListener(d -> {
+            Setting.putWebDavUrl(url.getText().toString().trim());
+            Setting.putWebDavUser(user.getText().toString().trim());
+            Setting.putWebDavPass(pass.getText().toString().trim());
+        });
+        dialog.show();
     }
 
     private void cloud(boolean upload, EditText url, EditText user, EditText pass) {
@@ -329,7 +337,11 @@ public class SyncDialog extends BaseBottomSheetDialog implements DeviceAdapter.O
                     else App.post(() -> Notify.show(R.string.cloud_bad_data));
                 }
             } catch (Exception e) {
-                App.post(() -> Notify.show(e.getMessage()));
+                String msg = String.valueOf(e.getMessage());
+                App.post(() -> {
+                    if (msg.contains("401")) Notify.show(R.string.cloud_bad_auth);
+                    else Notify.show(msg);
+                });
             }
         });
     }

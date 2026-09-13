@@ -59,15 +59,18 @@ public class WebDav {
     /** Uploads a file, creating the folder chain first when the server rejects the PUT. */
     public static void put(String file, String body) throws Exception {
         String target = url(file);
-        if (putOnce(target, body)) return;
+        int code = putOnce(target, body);
+        if (code >= 200 && code < 300) return;
         mkdirs(target);
-        if (!putOnce(target, body)) throw new IllegalStateException("HTTP error");
+        code = putOnce(target, body);
+        if (code < 200 || code >= 300) throw new IllegalStateException("HTTP " + code);
     }
 
-    private static boolean putOnce(String target, String body) throws Exception {
-        Request request = new Request.Builder().url(target).header("Authorization", auth()).post(RequestBody.create(JSON, body)).build();
+    /** WebDAV upload is an HTTP PUT - Jianguoyun answers 501 to POST on a resource. */
+    private static int putOnce(String target, String body) throws Exception {
+        Request request = new Request.Builder().url(target).header("Authorization", auth()).put(RequestBody.create(JSON, body)).build();
         try (Response response = client().newCall(request).execute()) {
-            return response.isSuccessful();
+            return response.code();
         }
     }
 

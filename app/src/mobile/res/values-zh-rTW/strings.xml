@@ -74,6 +74,7 @@
     <string name="cloud_up_ok">已上傳到雲端。</string>
     <string name="cloud_down_ok">已從雲端下載並合併。</string>
     <string name="cloud_bad_config">請填寫 WebDAV 位址。</string>
+    <string name="cloud_bad_auth">雲端認證失敗（HTTP 401）。請檢查帳號與應用密碼是否正確。</string>
     <string name="cloud_bad_data">雲端資料為空或無法識別。</string>
 
 </resources>

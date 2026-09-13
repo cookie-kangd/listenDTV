@@ -22,6 +22,7 @@ import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.ui.adapter.KeepAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
+import com.fongmi.android.tv.ui.dialog.SyncDialog;
 import com.fongmi.android.tv.utils.Notify;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -64,6 +65,10 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
 
     private void getKeep() {
         mAdapter.setItems(Keep.getVod(), () -> mBinding.progressLayout.showContent(true, mAdapter.getItemCount()));
+    }
+
+    private void onSync() {
+        SyncDialog.create().keep().show(this);
     }
 
     private void onDelete() {

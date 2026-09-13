@@ -21,6 +21,7 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Device;
 import com.fongmi.android.tv.bean.History;
+import com.fongmi.android.tv.bean.Keep;
 import com.fongmi.android.tv.databinding.DialogDeviceBinding;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.server.Server;
@@ -52,6 +53,7 @@ public class SyncDialog extends BaseBottomSheetDialog implements DeviceAdapter.O
     private DialogDeviceBinding binding;
     private DeviceAdapter adapter;
     private ScanTask scanTask;
+    private String type = "history";
 
     public SyncDialog() {
         scanTask = new ScanTask(this);
@@ -65,9 +67,22 @@ public class SyncDialog extends BaseBottomSheetDialog implements DeviceAdapter.O
         return new SyncDialog();
     }
 
+    public SyncDialog history() {
+        return type("history");
+    }
+
+    public SyncDialog keep() {
+        return type("keep");
+    }
+
     public void show(FragmentActivity activity) {
         for (Fragment f : activity.getSupportFragmentManager().getFragments()) if (f instanceof SyncDialog) return;
         show(activity.getSupportFragmentManager(), null);
+    }
+
+    private SyncDialog type(String type) {
+        this.type = type;
+        return this;
     }
 
     @Override
@@ -167,17 +182,23 @@ public class SyncDialog extends BaseBottomSheetDialog implements DeviceAdapter.O
     }
 
     private void send(Device item, String mode, boolean force) {
-        String url = String.format(Locale.getDefault(), "%s/action?do=sync&mode=%s&type=history%s", item.getIp(), mode, force ? "&force=true" : "");
+        String url = String.format(Locale.getDefault(), "%s/action?do=sync&mode=%s&type=%s%s", item.getIp(), mode, type, force ? "&force=true" : "");
         Runnable request = () -> OkHttp.newCall(client, url, buildBody()).enqueue(getCallback());
-        Task.executeSerial(request);
+        if (type.equals("history")) Task.executeSerial(request);
+        else request.run();
     }
 
     private FormBody buildBody() {
-        Config config = Config.vod();
         FormBody.Builder body = new FormBody.Builder();
         body.add("device", Device.get().toString());
-        body.add("config", config.toString());
-        body.add("targets", App.gson().toJson(History.get(config.getId())));
+        if (type.equals("history")) {
+            Config config = Config.vod();
+            body.add("config", config.toString());
+            body.add("targets", App.gson().toJson(History.get(config.getId())));
+        } else {
+            body.add("targets", App.gson().toJson(Keep.getVod()));
+            body.add("configs", App.gson().toJson(Config.findUrls()));
+        }
         return body.build();
     }
 
@@ -188,7 +209,7 @@ public class SyncDialog extends BaseBottomSheetDialog implements DeviceAdapter.O
     private void pull(Device item) {
         Task.execute(() -> {
             boolean done = false;
-            try (Response response = OkHttp.newCall(client, item.getIp().concat("/action?do=export&type=history"), "pull").execute()) {
+            try (Response response = OkHttp.newCall(client, item.getIp().concat("/action?do=export&type=").concat(type), "pull").execute()) {
                 String body = response.body() == null ? "" : response.body().string();
                 if (!response.isSuccessful() || body.isEmpty()) throw new IllegalStateException(response.message());
                 done = importPayload(body);
@@ -207,11 +228,16 @@ public class SyncDialog extends BaseBottomSheetDialog implements DeviceAdapter.O
         try {
             JsonObject data = App.gson().fromJson(body, JsonObject.class);
             FormBody.Builder form = new FormBody.Builder();
-            if (data.get("config") == null || data.get("targets") == null) return false;
-            form.add("config", data.get("config").toString());
+            if (type.equals("history")) {
+                if (data.get("config") == null || data.get("targets") == null) return false;
+                form.add("config", data.get("config").toString());
+            } else {
+                if (data.get("configs") == null || data.get("targets") == null) return false;
+                form.add("configs", data.get("configs").toString());
+            }
             form.add("targets", data.get("targets").toString());
             // Loopback import on 127.0.0.1: no dependency on which NIC Util.getIp() picked.
-            String url = Server.get().getAddress(true).concat("/action?do=sync&mode=1&type=history");
+            String url = Server.get().getAddress(true).concat("/action?do=sync&mode=1&type=").concat(type);
             try (Response res = OkHttp.newCall(client, url, form.build()).execute()) {
                 return res.isSuccessful();
             }

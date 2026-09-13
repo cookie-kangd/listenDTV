@@ -68,5 +68,16 @@
     <string name="device_manual_fail">對方無回應，請檢查 IP 是否正確、對方應用是否已開啟。</string>
     <string name="device_qr_title">我的裝置位址</string>
     <string name="device_pull_done">已擷取對方資料。</string>
+    <string name="cloud_title">雲端同步（WebDAV）</string>
+    <string name="cloud_url_hint">WebDAV 位址，如 https://dav.jianguoyun.com/dav/</string>
+    <string name="cloud_user_hint">帳號</string>
+    <string name="cloud_pass_hint">密碼 / 應用程式密碼</string>
+    <string name="cloud_tip">兩台裝置填同一個帳號：一台點「上傳」，另一台點「下載」。推薦坚果雲（免費支援 WebDAV，需在官網建立應用程式密碼）。</string>
+    <string name="cloud_upload">上傳</string>
+    <string name="cloud_download">下載</string>
+    <string name="cloud_up_ok">已上傳到雲端。</string>
+    <string name="cloud_down_ok">已從雲端下載並合併。</string>
+    <string name="cloud_bad_config">請填寫 WebDAV 位址。</string>
+    <string name="cloud_bad_data">雲端資料為空或無法識別。</string>
 
 </resources>

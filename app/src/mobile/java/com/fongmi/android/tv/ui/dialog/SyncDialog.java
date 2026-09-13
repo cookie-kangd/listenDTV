@@ -8,7 +8,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -37,6 +40,7 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.ScanTask;
 import com.fongmi.android.tv.utils.Task;
+import com.fongmi.android.tv.utils.WebDav;
 import com.github.catvod.net.OkHttp;
 import com.google.gson.JsonObject;
 import com.google.zxing.BarcodeFormat;
@@ -111,6 +115,7 @@ public class SyncDialog extends BaseBottomSheetDialog implements DeviceAdapter.O
         binding.scan.setOnClickListener(v -> onScan());
         binding.refresh.setOnClickListener(v -> onRefresh());
         binding.qr.setOnClickListener(v -> onQr());
+        binding.cloud.setOnClickListener(v -> onCloud());
         binding.manual.setOnClickListener(v -> onManual());
         binding.input.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_GO) {
@@ -269,21 +274,7 @@ public class SyncDialog extends BaseBottomSheetDialog implements DeviceAdapter.O
             try (Response response = OkHttp.newCall(client, item.getIp().concat("/action?do=export&type=" + type), "pull").execute()) {
                 String body = response.body() == null ? "" : response.body().string();
                 if (!response.isSuccessful() || body.isEmpty()) throw new IllegalStateException(response.message());
-                JsonObject data = App.gson().fromJson(body, JsonObject.class);
-                FormBody.Builder form = new FormBody.Builder();
-                if (type.equals("history")) {
-                    if (data.get("config") == null || data.get("targets") == null) throw new IllegalStateException("bad export");
-                    form.add("config", data.get("config").toString());
-                    form.add("targets", data.get("targets").toString());
-                } else {
-                    if (data.get("targets") == null || data.get("configs") == null) throw new IllegalStateException("bad export");
-                    form.add("targets", data.get("targets").toString());
-                    form.add("configs", data.get("configs").toString());
-                }
-                String url = Server.get().getAddress().concat("/action?do=sync&mode=1&type=" + type);
-                try (Response res = OkHttp.newCall(client, url, form.build()).execute()) {
-                    done = res.isSuccessful();
-                }
+                done = importPayload(body);
             } catch (Exception e) {
                 App.post(() -> Notify.show(e.getMessage()));
             }
@@ -291,6 +282,107 @@ public class SyncDialog extends BaseBottomSheetDialog implements DeviceAdapter.O
                 Notify.show(R.string.device_pull_done);
                 onSuccess();
             });
+        });
+    }
+
+    /** Feeds a sync payload (same shape as the server export) into our own server for import. */
+    private boolean importPayload(String body) {
+        try {
+            JsonObject data = App.gson().fromJson(body, JsonObject.class);
+            FormBody.Builder form = new FormBody.Builder();
+            if (type.equals("history")) {
+                if (data.get("config") == null || data.get("targets") == null) return false;
+                form.add("config", data.get("config").toString());
+                form.add("targets", data.get("targets").toString());
+            } else {
+                if (data.get("targets") == null || data.get("configs") == null) return false;
+                form.add("targets", data.get("targets").toString());
+                form.add("configs", data.get("configs").toString());
+            }
+            // Loopback import on 127.0.0.1: no dependency on which NIC Util.getIp() picked.
+            String url = Server.get().getAddress(true).concat("/action?do=sync&mode=1&type=" + type);
+            try (Response res = OkHttp.newCall(client, url, form.build()).execute()) {
+                return res.isSuccessful();
+            }
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /** Builds the cloud payload: same shape the server export endpoint serves. */
+    private String buildExport() {
+        JsonObject data = new JsonObject();
+        if (type.equals("keep")) {
+            data.add("targets", App.gson().toJsonTree(Keep.getVod()));
+            data.add("configs", App.gson().toJsonTree(Config.findUrls()));
+        } else {
+            Config config = Config.vod();
+            data.add("config", App.gson().toJsonTree(config));
+            data.add("targets", App.gson().toJsonTree(History.get(config.getId())));
+        }
+        return App.gson().toJson(data);
+    }
+
+    /**
+     * Cloud sync through WebDAV: both devices configure the same account, one uploads, the
+     * other downloads and merges. Works across any topology (emulator NAT, different Wi-Fi,
+     * remote networks) because neither device needs to reach the other directly.
+     */
+    private void onCloud() {
+        int pad = (int) (20 * getResources().getDisplayMetrics().density);
+        LinearLayout root = new LinearLayout(requireActivity());
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(pad, pad / 2, pad, 0);
+        EditText url = new EditText(requireActivity());
+        url.setHint(R.string.cloud_url_hint);
+        url.setInputType(EditorInfo.TYPE_TEXT_VARIATION_URI);
+        url.setSingleLine(true);
+        url.setText(Setting.getWebDavUrl());
+        EditText user = new EditText(requireActivity());
+        user.setHint(R.string.cloud_user_hint);
+        user.setSingleLine(true);
+        user.setText(Setting.getWebDavUser());
+        EditText pass = new EditText(requireActivity());
+        pass.setHint(R.string.cloud_pass_hint);
+        pass.setInputType(EditorInfo.TYPE_CLASS_TEXT | EditorInfo.TYPE_TEXT_VARIATION_PASSWORD);
+        pass.setSingleLine(true);
+        pass.setText(Setting.getWebDavPass());
+        TextView tip = new TextView(requireActivity());
+        tip.setText(R.string.cloud_tip);
+        tip.setTextSize(12);
+        tip.setPadding(pad / 4, pad / 2, pad / 4, 0);
+        root.addView(url);
+        root.addView(user);
+        root.addView(pass);
+        root.addView(tip);
+        new AlertDialog.Builder(requireActivity()).setTitle(R.string.cloud_title).setView(root).setPositiveButton(R.string.cloud_upload, (d, w) -> cloud(true, url, user, pass)).setNeutralButton(R.string.cloud_download, (d, w) -> cloud(false, url, user, pass)).setNegativeButton(android.R.string.cancel, null).show();
+    }
+
+    private void cloud(boolean upload, EditText url, EditText user, EditText pass) {
+        Setting.putWebDavUrl(url.getText().toString().trim());
+        Setting.putWebDavUser(user.getText().toString().trim());
+        Setting.putWebDavPass(pass.getText().toString().trim());
+        if (!WebDav.isConfigured()) {
+            Notify.show(R.string.cloud_bad_config);
+            return;
+        }
+        String file = "listendtv/sync-" + type + ".json";
+        Task.execute(() -> {
+            try {
+                if (upload) {
+                    WebDav.put(file, buildExport());
+                    App.post(() -> Notify.show(R.string.cloud_up_ok));
+                } else {
+                    String body = WebDav.get(file);
+                    if (importPayload(body)) App.post(() -> {
+                        Notify.show(R.string.cloud_down_ok);
+                        onSuccess();
+                    });
+                    else App.post(() -> Notify.show(R.string.cloud_bad_data));
+                }
+            } catch (Exception e) {
+                App.post(() -> Notify.show(e.getMessage()));
+            }
         });
     }
 

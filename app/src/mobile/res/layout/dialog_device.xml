@@ -35,6 +35,14 @@
             tools:visibility="visible" />
 
         <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/cloud"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_cloud_sync" />
+
+        <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/qr"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

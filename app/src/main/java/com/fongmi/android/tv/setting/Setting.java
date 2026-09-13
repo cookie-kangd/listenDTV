@@ -13,7 +13,7 @@ public class Setting {
     private static final int MIN_SITE_MODE = 0;
     private static final int MAX_SITE_MODE = 1;
     private static final int MIN_SYNC_MODE = 0;
-    private static final int MAX_SYNC_MODE = 2;
+    private static final int MAX_SYNC_MODE = 3;
 
     public static String getSwitch(boolean value) {
         return ResUtil.getString(value ? R.string.setting_on : R.string.setting_off);
@@ -103,6 +103,30 @@ public class Setting {
 
     public static void putSyncMode(int mode) {
         Prefers.put("sync_mode", Math.clamp(mode, MIN_SYNC_MODE, MAX_SYNC_MODE));
+    }
+
+    public static String getWebDavUrl() {
+        return Prefers.getString("webdav_url");
+    }
+
+    public static void putWebDavUrl(String url) {
+        Prefers.put("webdav_url", url);
+    }
+
+    public static String getWebDavUser() {
+        return Prefers.getString("webdav_user");
+    }
+
+    public static void putWebDavUser(String user) {
+        Prefers.put("webdav_user", user);
+    }
+
+    public static String getWebDavPass() {
+        return Prefers.getString("webdav_pass");
+    }
+
+    public static void putWebDavPass(String pass) {
+        Prefers.put("webdav_pass", pass);
     }
 
     public static boolean isIncognito() {

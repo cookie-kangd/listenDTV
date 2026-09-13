@@ -68,5 +68,16 @@
     <string name="device_manual_fail">No answer from the peer. Check the IP and make sure the app is open there.</string>
     <string name="device_qr_title">My device address</string>
     <string name="device_pull_done">Data pulled from the peer.</string>
+    <string name="cloud_title">Cloud sync (WebDAV)</string>
+    <string name="cloud_url_hint">WebDAV URL, e.g. https://dav.jianguoyun.com/dav/</string>
+    <string name="cloud_user_hint">Account</string>
+    <string name="cloud_pass_hint">Password / app password</string>
+    <string name="cloud_tip">Both devices must use the same account: tap Upload on one and Download on the other. Jianguoyun offers a free WebDAV account (create an app password on its website).</string>
+    <string name="cloud_upload">Upload</string>
+    <string name="cloud_download">Download</string>
+    <string name="cloud_up_ok">Uploaded to the cloud.</string>
+    <string name="cloud_down_ok">Downloaded and merged.</string>
+    <string name="cloud_bad_config">WebDAV URL is required.</string>
+    <string name="cloud_bad_data">Cloud data is empty or unreadable.</string>
 
 </resources>

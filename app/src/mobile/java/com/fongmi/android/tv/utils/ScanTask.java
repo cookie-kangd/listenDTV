@@ -110,20 +110,6 @@ public class ScanTask {
         });
     }
 
-    /**
-     * Probes one user-provided address and reports the outcome, so a manual entry gets an
-     * explicit "reachable / no answer" instead of silence.
-     */
-    public void startManual(String url) {
-        Task.execute(() -> {
-            String target = normalize(url);
-            boolean ok = !target.isEmpty() && probe(target, null);
-            App.post(() -> {
-                if (listener != null) listener.onManualDone(ok);
-            });
-        });
-    }
-
     public void stop() {
         listener = null;
         OkHttp.cancel(client, "scan");
@@ -343,10 +329,6 @@ public class ScanTask {
 
         /** A scan round ended; {@code count} is how many devices were found in total. */
         default void onScanEnd(int count) {
-        }
-
-        /** A manual address entry finished; {@code success} is whether the peer answered. */
-        default void onManualDone(boolean success) {
         }
     }
 }

@@ -63,10 +63,6 @@
     <string name="device_scan_scanning">正在扫描局域网设备…</string>
     <string name="device_scan_found">扫描完成，找到 %1$d 台设备。</string>
     <string name="device_scan_empty">未发现设备。请确认两台设备都已打开本应用并连接同一个 Wi-Fi。</string>
-    <string name="device_manual_hint">输入对方 IP，如 192.168.1.7</string>
-    <string name="device_manual_found">连接成功，设备已添加。</string>
-    <string name="device_manual_fail">对方无响应，请检查 IP 是否正确、对方应用是否已打开。</string>
-    <string name="device_qr_title">我的设备地址</string>
     <string name="device_pull_done">已拉取对方数据。</string>
     <string name="cloud_title">云端同步（WebDAV）</string>
     <string name="cloud_url_hint">WebDAV 地址，如 https://dav.jianguoyun.com/dav/</string>

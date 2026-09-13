@@ -3,13 +3,11 @@ package com.fongmi.android.tv.ui.dialog;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.TypedArray;
-import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -43,9 +41,6 @@ import com.fongmi.android.tv.utils.Task;
 import com.fongmi.android.tv.utils.WebDav;
 import com.github.catvod.net.OkHttp;
 import com.google.gson.JsonObject;
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.MultiFormatWriter;
-import com.journeyapps.barcodescanner.BarcodeEncoder;
 
 import java.io.IOException;
 import java.util.Locale;
@@ -114,16 +109,7 @@ public class SyncDialog extends BaseBottomSheetDialog implements DeviceAdapter.O
         binding.mode.setOnClickListener(v -> onMode());
         binding.scan.setOnClickListener(v -> onScan());
         binding.refresh.setOnClickListener(v -> onRefresh());
-        binding.qr.setOnClickListener(v -> onQr());
         binding.cloud.setOnClickListener(v -> onCloud());
-        binding.manual.setOnClickListener(v -> onManual());
-        binding.input.setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_GO) {
-                onManual();
-                return true;
-            }
-            return false;
-        });
     }
 
     private void setRecyclerView() {
@@ -156,38 +142,6 @@ public class SyncDialog extends BaseBottomSheetDialog implements DeviceAdapter.O
         launcher.launch(new Intent(requireActivity(), ScanActivity.class));
     }
 
-    private void onManual() {
-        String input = binding.input.getText().toString().trim();
-        if (input.isEmpty()) return;
-        binding.input.setText("");
-        binding.hint.setVisibility(View.VISIBLE);
-        binding.hint.setText(R.string.device_scan_scanning);
-        scanTask.startManual(input);
-    }
-
-    private void onQr() {
-        // Be reachable ourselves even on a fresh install that never loaded a config.
-        Server.get().start();
-        String address = Server.get().getAddress();
-        if (address.isEmpty()) return;
-        Task.execute(() -> {
-            try {
-                Bitmap bitmap = new BarcodeEncoder().createBitmap(new MultiFormatWriter().encode(address, BarcodeFormat.QR_CODE, 600, 600));
-                App.post(() -> showQr(bitmap, address));
-            } catch (Exception e) {
-                App.post(() -> Notify.show(e.getMessage()));
-            }
-        });
-    }
-
-    private void showQr(Bitmap bitmap, String address) {
-        ImageView view = new ImageView(requireActivity());
-        int pad = (int) (16 * getResources().getDisplayMetrics().density);
-        view.setPadding(pad, pad, pad, pad);
-        view.setImageBitmap(bitmap);
-        new AlertDialog.Builder(requireActivity()).setTitle(R.string.device_qr_title).setMessage(address).setView(view).setPositiveButton(android.R.string.ok, null).show();
-    }
-
     private void onRefresh() {
         adapter.clear(() -> {
             Device.delete();
@@ -216,12 +170,6 @@ public class SyncDialog extends BaseBottomSheetDialog implements DeviceAdapter.O
     public void onScanEnd(int count) {
         binding.hint.setVisibility(View.VISIBLE);
         binding.hint.setText(count == 0 ? getString(R.string.device_scan_empty) : getString(R.string.device_scan_found, count));
-    }
-
-    @Override
-    public void onManualDone(boolean success) {
-        binding.hint.setVisibility(View.VISIBLE);
-        binding.hint.setText(success ? R.string.device_manual_found : R.string.device_manual_fail);
     }
 
     @Override

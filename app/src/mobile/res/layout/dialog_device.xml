@@ -43,14 +43,6 @@
             android:src="@drawable/ic_cloud_sync" />
 
         <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/qr"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_action_qr" />
-
-        <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/scan"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -64,38 +56,6 @@
             android:layout_height="wrap_content"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_action_refresh" />
-
-    </androidx.appcompat.widget.LinearLayoutCompat>
-
-    <androidx.appcompat.widget.LinearLayoutCompat
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="24dp"
-        android:paddingTop="4dp">
-
-        <EditText
-            android:id="@+id/input"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="@string/device_manual_hint"
-            android:imeOptions="actionGo"
-            android:inputType="textUri"
-            android:maxLines="1"
-            android:singleLine="true"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="14sp" />
-
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/manual"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="8dp"
-            android:src="@drawable/ic_action_check" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 

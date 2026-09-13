@@ -149,6 +149,18 @@ public class SyncDialog extends BaseBottomSheetDialog implements DeviceAdapter.O
     }
 
     @Override
+    public void onScanStart() {
+        binding.hint.setVisibility(View.VISIBLE);
+        binding.hint.setText(R.string.device_scan_scanning);
+    }
+
+    @Override
+    public void onScanEnd(int count) {
+        binding.hint.setVisibility(View.VISIBLE);
+        binding.hint.setText(count == 0 ? R.string.device_scan_empty : getString(R.string.device_scan_found, count));
+    }
+
+    @Override
     public void onItemClick(Device item) {
         send(item, binding.mode.getTag().toString(), false);
     }

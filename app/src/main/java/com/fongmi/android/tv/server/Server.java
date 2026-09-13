@@ -7,6 +7,7 @@ import com.github.catvod.utils.Util;
 
 public class Server {
 
+    private final Discovery discovery = new Discovery();
     private volatile PlaybackService service;
     private volatile Nano nano;
 
@@ -54,13 +55,22 @@ public class Server {
                 nano = null;
             }
         }
+        // Answer LAN discovery broadcasts too, otherwise a peer has to guess both our subnet
+        // and our port before it can find us.
+        if (nano != null) discovery.start();
     }
 
     public void stop() {
         Task.execute(() -> {
+            discovery.stop();
             if (nano != null) nano.stop();
             service = null;
             nano = null;
         });
+    }
+
+    /** Port the HTTP server actually listens on, -1 when it never started. */
+    public int getPort() {
+        return nano == null ? -1 : Proxy.getPort();
     }
 }

@@ -59,4 +59,9 @@
         <item>子母畫面</item>
     </string-array>
 
+    <!-- LAN sync -->
+    <string name="device_scan_scanning">正在掃描區網設備…</string>
+    <string name="device_scan_found">掃描完成，找到 %1$d 台裝置。</string>
+    <string name="device_scan_empty">未發現裝置。請確認兩台裝置都已開啟本應用並連線同一個 Wi-Fi。</string>
+
 </resources>

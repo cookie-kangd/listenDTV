@@ -59,4 +59,9 @@
         <item>PiP</item>
     </string-array>
 
+    <!-- LAN sync -->
+    <string name="device_scan_scanning">Scanning the local network…</string>
+    <string name="device_scan_found">Scan finished: %1$d device(s) found.</string>
+    <string name="device_scan_empty">No devices found. Make sure both devices run this app on the same Wi-Fi network.</string>
+
 </resources>

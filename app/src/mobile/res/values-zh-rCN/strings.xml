@@ -59,4 +59,9 @@
         <item>画中画</item>
     </string-array>
 
+    <!-- LAN sync -->
+    <string name="device_scan_scanning">正在扫描局域网设备…</string>
+    <string name="device_scan_found">扫描完成，找到 %1$d 台设备。</string>
+    <string name="device_scan_empty">未发现设备。请确认两台设备都已打开本应用并连接同一个 Wi-Fi。</string>
+
 </resources>

@@ -59,7 +59,7 @@ public class Server {
         // and our port before it can find us.
         if (nano != null) {
             discovery.start();
-            Nsd.create().register(i);
+            Nsd.create().register(getPort());
         }
     }
 

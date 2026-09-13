@@ -3,6 +3,7 @@ package com.fongmi.android.tv.utils;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.bean.Device;
 import com.fongmi.android.tv.server.Discovery;
+import com.fongmi.android.tv.server.Nsd;
 import com.fongmi.android.tv.server.Server;
 import com.github.catvod.net.OkHttp;
 
@@ -19,6 +20,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -29,24 +32,32 @@ import okhttp3.Response;
 /**
  * Finds other listenDTV devices on the local network.
  *
- * <p>Two things used to make this fail silently on a perfectly good Wi-Fi:</p>
+ * <p>Things that used to make this fail silently on a perfectly good Wi-Fi:</p>
  * <ul>
  *   <li>the sweep reused the shared OkHttp client, so every {@code 192.168.x.x} probe went
  *       through DoH and the user's host/proxy rules - a LAN address is not a hostname and
  *       must never be resolved or proxied;</li>
  *   <li>it only walked the single /24 taken from {@code Util.getIp()} and only ever tried
- *       port 9978, while the embedded HTTP server may end up on any port in 9978..9998.</li>
+ *       port 9978, while the embedded HTTP server may end up on any port in 9978..9998;</li>
+ *   <li>the embedded server only starts when a config loads, so a device sitting in this
+ *       dialog right after a fresh install had nothing listening and could never be found;</li>
+ *   <li>the broadcast responder cannot hear anything without a MulticastLock on the peer.</li>
  * </ul>
  *
- * <p>Discovery now runs in two passes: a UDP broadcast the peer answers directly (one round
- * trip, no guessing), then a TCP sweep across every local subnet and both plausible ports.
- * Failures are reported back through {@link Listener#onScanEnd(int)} so the UI can say
- * something useful instead of showing an empty list forever.</p>
+ * <p>Discovery now runs three passes, first to last resort: mDNS browsing through the system
+ * NSD stack (no subnet or port guessing, immune to vendor broadcast filtering), then a UDP
+ * broadcast the peer answers directly, then a TCP sweep across every local subnet and both
+ * plausible ports. The sweep uses a dedicated wide pool so the probe count never outruns the
+ * deadline. Failures are reported back through {@link Listener#onScanEnd(int)} so the UI can
+ * say something useful instead of showing an empty list forever.</p>
  */
 public class ScanTask {
 
     /** Default port of the embedded HTTP server, still first choice. */
     public static final int DEFAULT_PORT = 9978;
+
+    /** How long we browse mDNS for advertised peers. */
+    private static final long NSD_MS = 2500;
 
     /** How long we listen for broadcast replies. */
     private static final long BROADCAST_MS = 1200;
@@ -57,16 +68,23 @@ public class ScanTask {
     /** More than this many local subnets usually means VPN/emulator noise. */
     private static final int MAX_SUBNETS = 3;
 
+    /**
+     * A 20-thread pool needs ~30s for 254 hosts x 2 ports at 1.2s timeouts, right at the
+     * deadline; 48 threads at 800ms finishes the same sweep in under 10s.
+     */
+    private static final int SWEEP_THREADS = 48;
+
     private final CopyOnWriteArrayList<Future<?>> future;
     private final Set<String> found;
     private final AtomicInteger count;
     private final OkHttpClient client;
+    private final ExecutorService pool;
     private Listener listener;
 
     public ScanTask(Listener listener) {
         // Direct connections only: Dns.SYSTEM handles IP literals locally and NO_PROXY
         // keeps the LAN traffic away from whatever proxy the content config installed.
-        this.client = OkHttp.client(1200).newBuilder()
+        this.client = OkHttp.client(800).newBuilder()
                 .dns(Dns.SYSTEM)
                 .proxy(java.net.Proxy.NO_PROXY)
                 .build();
@@ -74,6 +92,11 @@ public class ScanTask {
         this.found = new LinkedHashSet<>();
         this.count = new AtomicInteger();
         this.listener = listener;
+        this.pool = Executors.newFixedThreadPool(SWEEP_THREADS, r -> {
+            Thread thread = new Thread(r, "lan-scan");
+            thread.setDaemon(true);
+            return thread;
+        });
     }
 
     public void start() {
@@ -92,23 +115,39 @@ public class ScanTask {
         OkHttp.cancel(client, "scan");
         future.forEach(f -> f.cancel(true));
         future.clear();
+        pool.shutdownNow();
     }
 
     private void run() {
-        List<String> self = localIps();
-        List<String> hosts = hosts(self);
-        int[] ports = ports();
-        if (hosts.isEmpty()) {
-            finish();
-            return;
+        try {
+            // Be discoverable ourselves: the embedded server otherwise only starts when a
+            // config loads, which may never have happened on the device being scanned for.
+            Server.get().start();
+            List<String> self = localIps();
+            notifyStart();
+            browseNsd(self);
+            List<String> hosts = hosts(self);
+            if (!hosts.isEmpty()) {
+                broadcast(hosts, self);
+                int[] ports = ports();
+                for (String host : hosts)
+                    for (int port : ports)
+                        future.add(pool.submit(() -> probe("http://" + host + ":" + port, self)));
+                await();
+            } else {
+                Thread.sleep(BROADCAST_MS);
+            }
+        } catch (Throwable e) {
+            // Interruption from stop() lands here; still report the outcome.
         }
-        notifyStart();
-        broadcast(hosts, self);
-        for (String host : hosts)
-            for (int port : ports)
-                future.add(Task.submitLarge(() -> probe("http://" + host + ":" + port, self)));
-        await();
         finish();
+    }
+
+    /** Pass 1: mDNS browse through the system NSD stack, then probe what it resolved. */
+    private void browseNsd(List<String> self) {
+        for (String url : Nsd.create().discover(NSD_MS)) {
+            future.add(pool.submit(() -> probe(url, self)));
+        }
     }
 
     /** Walks every local /24, skipping anything that is not a plain IPv4 LAN address. */

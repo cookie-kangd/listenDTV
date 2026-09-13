@@ -1,5 +1,9 @@
 package com.fongmi.android.tv.server;
 
+import android.content.Context;
+import android.net.wifi.WifiManager;
+
+import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.bean.Device;
 
 import java.net.DatagramPacket;
@@ -15,6 +19,12 @@ import java.nio.charset.StandardCharsets;
  * broadcast with this device's JSON, so a peer can find us in one round trip without knowing
  * anything about us.</p>
  *
+ * <p>Android Wi-Fi drivers drop packets that are not explicitly addressed to the device unless
+ * the app holds a {@link WifiManager.MulticastLock} - the manifest permission alone changes
+ * nothing. Without the lock the responder never hears the broadcast at all, which is exactly
+ * the "same Wi-Fi but never found" symptom, so the lock is acquired for the responder's
+ * lifetime and released when it stops.</p>
+ *
  * <p>It is a pure addition: peers that do not understand the magic packet are ignored, and the
  * TCP sweep keeps working for older builds.</p>
  */
@@ -29,6 +39,8 @@ public class Discovery {
     /** Device info is rebuilt at most this often, it shells out for the serial number. */
     private static final long CACHE_MS = 5_000;
 
+    private static WifiManager.MulticastLock lock;
+
     private volatile DatagramSocket socket;
     private volatile Thread thread;
 
@@ -38,6 +50,7 @@ public class Discovery {
     public synchronized void start() {
         if (socket != null) return;
         try {
+            acquireLock();
             DatagramSocket s = new DatagramSocket(null);
             s.setReuseAddress(true);
             s.bind(new InetSocketAddress(PORT));
@@ -56,6 +69,29 @@ public class Discovery {
         socket = null;
         thread = null;
         if (s != null) s.close();
+        releaseLock();
+    }
+
+    /** Without this the Wi-Fi stack silently discards broadcast packets on many devices. */
+    private static void acquireLock() {
+        if (lock != null && lock.isHeld()) return;
+        try {
+            WifiManager wifi = (WifiManager) App.get().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+            if (wifi == null) return;
+            lock = wifi.createMulticastLock("listendtv-discovery");
+            lock.setReferenceCounted(false);
+            lock.acquire();
+        } catch (Throwable e) {
+            lock = null;
+        }
+    }
+
+    private static void releaseLock() {
+        try {
+            if (lock != null && lock.isHeld()) lock.release();
+        } catch (Throwable ignored) {
+        }
+        lock = null;
     }
 
     private void loop() {

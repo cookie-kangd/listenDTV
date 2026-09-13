@@ -57,11 +57,15 @@ public class Server {
         }
         // Answer LAN discovery broadcasts too, otherwise a peer has to guess both our subnet
         // and our port before it can find us.
-        if (nano != null) discovery.start();
+        if (nano != null) {
+            discovery.start();
+            Nsd.create().register(nano.getPort());
+        }
     }
 
     public void stop() {
         Task.execute(() -> {
+            Nsd.create().unregister();
             discovery.stop();
             if (nano != null) nano.stop();
             service = null;

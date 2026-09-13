@@ -3,14 +3,18 @@ package com.fongmi.android.tv.ui.dialog;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.widget.ImageView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewbinding.ViewBinding;
@@ -24,6 +28,7 @@ import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.bean.Keep;
 import com.fongmi.android.tv.databinding.DialogDeviceBinding;
 import com.fongmi.android.tv.impl.Callback;
+import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.ui.activity.ScanActivity;
 import com.fongmi.android.tv.ui.adapter.DeviceAdapter;
@@ -33,11 +38,16 @@ import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.ScanTask;
 import com.fongmi.android.tv.utils.Task;
 import com.github.catvod.net.OkHttp;
+import com.google.gson.JsonObject;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.journeyapps.barcodescanner.BarcodeEncoder;
 
 import java.io.IOException;
 import java.util.Locale;
 
 import okhttp3.Call;
+import okhttp3.Dns;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
@@ -54,7 +64,9 @@ public class SyncDialog extends BaseBottomSheetDialog implements DeviceAdapter.O
 
     public SyncDialog() {
         scanTask = new ScanTask(this);
-        client = OkHttp.client(Constant.TIMEOUT_SYNC);
+        // Direct connections only: device addresses are LAN IP literals, they must never be
+        // resolved through DoH or routed through the user's proxy.
+        client = OkHttp.client(Constant.TIMEOUT_SYNC).newBuilder().dns(Dns.SYSTEM).proxy(java.net.Proxy.NO_PROXY).build();
         mode = ResUtil.getTypedArray(R.array.cast_mode);
     }
 
@@ -98,6 +110,15 @@ public class SyncDialog extends BaseBottomSheetDialog implements DeviceAdapter.O
         binding.mode.setOnClickListener(v -> onMode());
         binding.scan.setOnClickListener(v -> onScan());
         binding.refresh.setOnClickListener(v -> onRefresh());
+        binding.qr.setOnClickListener(v -> onQr());
+        binding.manual.setOnClickListener(v -> onManual());
+        binding.input.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_GO) {
+                onManual();
+                return true;
+            }
+            return false;
+        });
     }
 
     private void setRecyclerView() {
@@ -128,6 +149,38 @@ public class SyncDialog extends BaseBottomSheetDialog implements DeviceAdapter.O
 
     private void onScan() {
         launcher.launch(new Intent(requireActivity(), ScanActivity.class));
+    }
+
+    private void onManual() {
+        String input = binding.input.getText().toString().trim();
+        if (input.isEmpty()) return;
+        binding.input.setText("");
+        binding.hint.setVisibility(View.VISIBLE);
+        binding.hint.setText(R.string.device_scan_scanning);
+        scanTask.startManual(input);
+    }
+
+    private void onQr() {
+        // Be reachable ourselves even on a fresh install that never loaded a config.
+        Server.get().start();
+        String address = Server.get().getAddress();
+        if (address.isEmpty()) return;
+        Task.execute(() -> {
+            try {
+                Bitmap bitmap = new BarcodeEncoder().createBitmap(new MultiFormatWriter().encode(address, BarcodeFormat.QR_CODE, 600, 600));
+                App.post(() -> showQr(bitmap, address));
+            } catch (Exception e) {
+                App.post(() -> Notify.show(e.getMessage()));
+            }
+        });
+    }
+
+    private void showQr(Bitmap bitmap, String address) {
+        ImageView view = new ImageView(requireActivity());
+        int pad = (int) (16 * getResources().getDisplayMetrics().density);
+        view.setPadding(pad, pad, pad, pad);
+        view.setImageBitmap(bitmap);
+        new AlertDialog.Builder(requireActivity()).setTitle(R.string.device_qr_title).setMessage(address).setView(view).setPositiveButton(android.R.string.ok, null).show();
     }
 
     private void onRefresh() {
@@ -161,14 +214,23 @@ public class SyncDialog extends BaseBottomSheetDialog implements DeviceAdapter.O
     }
 
     @Override
+    public void onManualDone(boolean success) {
+        binding.hint.setVisibility(View.VISIBLE);
+        binding.hint.setText(success ? R.string.device_manual_found : R.string.device_manual_fail);
+    }
+
+    @Override
     public void onItemClick(Device item) {
-        send(item, binding.mode.getTag().toString(), false);
+        // Mode 3 is a true pull: fetch the peer's data and import it here, which also works
+        // when the peer cannot reach us back (emulator behind NAT).
+        if (binding.mode.getTag().toString().equals("3")) pull(item);
+        else send(item, binding.mode.getTag().toString(), false);
     }
 
     @Override
     public boolean onLongClick(Device item) {
         String mode = binding.mode.getTag().toString();
-        if (mode.equals("0")) return false;
+        if (mode.equals("0") || mode.equals("3")) return false;
         send(item, mode, true);
         return true;
     }
@@ -195,6 +257,41 @@ public class SyncDialog extends BaseBottomSheetDialog implements DeviceAdapter.O
             body.add("configs", App.gson().toJson(Config.findUrls()));
             return body.build();
         }
+    }
+
+    /**
+     * Fetches the peer's export and replays it into our own server as a sync import, reusing
+     * the exact merge logic a normal push would take.
+     */
+    private void pull(Device item) {
+        Task.execute(() -> {
+            boolean done = false;
+            try (Response response = OkHttp.newCall(client, item.getIp().concat("/action?do=export&type=" + type), "pull").execute()) {
+                String body = response.body() == null ? "" : response.body().string();
+                if (!response.isSuccessful() || body.isEmpty()) throw new IllegalStateException(response.message());
+                JsonObject data = App.gson().fromJson(body, JsonObject.class);
+                FormBody.Builder form = new FormBody.Builder();
+                if (type.equals("history")) {
+                    if (data.get("config") == null || data.get("targets") == null) throw new IllegalStateException("bad export");
+                    form.add("config", data.get("config").toString());
+                    form.add("targets", data.get("targets").toString());
+                } else {
+                    if (data.get("targets") == null || data.get("configs") == null) throw new IllegalStateException("bad export");
+                    form.add("targets", data.get("targets").toString());
+                    form.add("configs", data.get("configs").toString());
+                }
+                String url = Server.get().getAddress().concat("/action?do=sync&mode=1&type=" + type);
+                try (Response res = OkHttp.newCall(client, url, form.build()).execute()) {
+                    done = res.isSuccessful();
+                }
+            } catch (Exception e) {
+                App.post(() -> Notify.show(e.getMessage()));
+            }
+            if (done) App.post(() -> {
+                Notify.show(R.string.device_pull_done);
+                onSuccess();
+            });
+        });
     }
 
     private Callback getCallback() {

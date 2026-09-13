@@ -5,6 +5,7 @@
         <item>@drawable/ic_sync_two</item>
         <item>@drawable/ic_sync_upload</item>
         <item>@drawable/ic_sync_download</item>
+        <item>@drawable/ic_sync_pull</item>
     </integer-array>
 
 </resources>

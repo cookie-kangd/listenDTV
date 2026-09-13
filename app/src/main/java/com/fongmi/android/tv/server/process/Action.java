@@ -22,6 +22,7 @@ import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
+import com.google.gson.JsonObject;
 
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,8 @@ public class Action implements Process {
     public Response doResponse(IHTTPSession session, String url, Map<String, String> files) {
         Map<String, String> params = session.getParms();
         String param = params.get("do");
+        // Export answers with the caller's own data in the response body, it is the pull half of sync.
+        if ("export".equals(param)) return onExport(params);
         if (!TextUtils.isEmpty(param)) doJob(param, params);
         return Nano.ok();
     }
@@ -58,6 +61,26 @@ public class Action implements Process {
             case "control" -> onControl(params);
             case "danmaku" -> onDanmaku(params);
         }
+    }
+
+    /**
+     * Serves the same payload a sync push would carry, so a peer that cannot be reached
+     * directly (an emulator behind NAT, a device on another subnet) can fetch our data
+     * instead. The shape matches {@code SyncDialog.buildBody()} exactly, so the caller can
+     * replay it into its own server as a plain sync import.
+     */
+    private Response onExport(Map<String, String> params) {
+        String type = params.get("type");
+        JsonObject data = new JsonObject();
+        if ("keep".equals(type)) {
+            data.add("targets", App.gson().toJsonTree(Keep.getVod()));
+            data.add("configs", App.gson().toJsonTree(Config.findUrls()));
+        } else {
+            Config config = Config.vod();
+            data.add("config", App.gson().toJsonTree(config));
+            data.add("targets", App.gson().toJsonTree(History.get(config.getId())));
+        }
+        return Nano.ok(App.gson().toJson(data));
     }
 
     private void onFile(Map<String, String> params) {

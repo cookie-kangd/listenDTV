@@ -63,5 +63,10 @@
     <string name="device_scan_scanning">Scanning the local network…</string>
     <string name="device_scan_found">Scan finished: %1$d device(s) found.</string>
     <string name="device_scan_empty">No devices found. Make sure both devices run this app on the same Wi-Fi network.</string>
+    <string name="device_manual_hint">Peer IP, e.g. 192.168.1.7</string>
+    <string name="device_manual_found">Connected, device added.</string>
+    <string name="device_manual_fail">No answer from the peer. Check the IP and make sure the app is open there.</string>
+    <string name="device_qr_title">My device address</string>
+    <string name="device_pull_done">Data pulled from the peer.</string>
 
 </resources>

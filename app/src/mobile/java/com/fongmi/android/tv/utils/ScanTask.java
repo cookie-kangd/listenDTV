@@ -327,5 +327,9 @@ public class ScanTask {
         /** A scan round ended; {@code count} is how many devices were found in total. */
         default void onScanEnd(int count) {
         }
+
+        /** A manual address entry finished; {@code success} is whether the peer answered. */
+        default void onManualDone(boolean success) {
+        }
     }
 }

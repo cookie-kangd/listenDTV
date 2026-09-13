@@ -110,6 +110,20 @@ public class ScanTask {
         });
     }
 
+    /**
+     * Probes one user-provided address and reports the outcome, so a manual entry gets an
+     * explicit "reachable / no answer" instead of silence.
+     */
+    public void startManual(String url) {
+        Task.execute(() -> {
+            String target = normalize(url);
+            boolean ok = !target.isEmpty() && probe(target, null);
+            App.post(() -> {
+                if (listener != null) listener.onManualDone(ok);
+            });
+        });
+    }
+
     public void stop() {
         listener = null;
         OkHttp.cancel(client, "scan");
@@ -248,12 +262,15 @@ public class ScanTask {
         }
     }
 
-    private void probe(String url, List<String> self) {
-        if (self != null && self.contains(host(url))) return;
+    private boolean probe(String url, List<String> self) {
+        if (self != null && self.contains(host(url))) return false;
         try (Response response = OkHttp.newCall(client, url.concat("/device"), "scan").execute()) {
-            if (!response.isSuccessful() || response.body() == null) return;
-            accept(response.body().string(), self);
-        } catch (Throwable ignored) {
+            if (!response.isSuccessful() || response.body() == null) return false;
+            String json = response.body().string();
+            accept(json, self);
+            return true;
+        } catch (Throwable e) {
+            return false;
         }
     }
 

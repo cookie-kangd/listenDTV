@@ -101,6 +101,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
         mBinding.exitCleanText.setText(Setting.getSwitch(Setting.getExitClean()));
         mBinding.autoUpdateText.setText(Setting.getSwitch(Setting.getAutoUpdate()));
+        mBinding.listenText.setText(Setting.getSwitch(Setting.getListen()));
         mBinding.highRefreshText.setText(Setting.getSwitch(Setting.getHighRefresh()));
         mBinding.tvText.setText(Setting.getSwitch(Setting.getTv()));
         mBinding.sizeText.setText((size = ResUtil.getStringArray(R.array.select_size))[PlayerSetting.getSize()]);
@@ -130,6 +131,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.about.setOnClickListener(this::onAbout);
         mBinding.exitClean.setOnClickListener(this::setExitClean);
         mBinding.autoUpdate.setOnClickListener(this::setAutoUpdate);
+        mBinding.listen.setOnClickListener(this::setListen);
         mBinding.highRefresh.setOnClickListener(this::setHighRefresh);
         mBinding.tv.setOnClickListener(this::setTv);
         mBinding.vod.setOnLongClickListener(this::onVodEdit);
@@ -270,6 +272,18 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     private void setAutoUpdate(View view) {
         Setting.putAutoUpdate(!Setting.getAutoUpdate());
         mBinding.autoUpdateText.setText(Setting.getSwitch(Setting.getAutoUpdate()));
+    }
+
+    /**
+     * Global default for videos that have no per-video override. Changing it
+     * clears the remembered per-video choices so the new default really does
+     * apply to every video from then on; the in-player headphone button still
+     * writes a per-video override exactly as before.
+     */
+    private void setListen(View view) {
+        Setting.putListen(!Setting.getListen());
+        Setting.putListenMap("");
+        mBinding.listenText.setText(Setting.getSwitch(Setting.getListen()));
     }
 
     private void setHighRefresh(View view) {

@@ -1342,12 +1342,13 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
     }
 
     private boolean isListen() {
-        // Listen mode is remembered PER VIDEO (site+vod key): toggling one video
-        // never affects the others. Videos without an override default to ON.
+        // The Settings switch is the global default; a per-video choice made
+        // with the in-player headphone button still wins for that video.
+        boolean fallback = Setting.getListen();
         try {
-            return listenMap().optBoolean(getHistoryKey(), true);
+            return listenMap().optBoolean(getHistoryKey(), fallback);
         } catch (Exception ignored) {
-            return true;
+            return fallback;
         }
     }
 

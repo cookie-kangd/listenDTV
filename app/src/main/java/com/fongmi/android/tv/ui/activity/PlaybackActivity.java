@@ -100,6 +100,9 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
 
     protected void setAudioOnly(boolean audioOnly) {
         this.audioOnly = audioOnly;
+        // Audio-only playback has nothing to look at, so let the display time
+        // out instead of pinning the screen on for the whole listening session.
+        if (audioOnly) getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     protected boolean isStop() {
@@ -563,7 +566,7 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
     @Override
     public void onIsPlayingChanged(boolean isPlaying) {
         if (!isOwner()) return;
-        if (isPlaying) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        if (isPlaying && !isAudioOnly()) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         else if (!isBuffering()) getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         onPlayingChanged(isPlaying);
     }

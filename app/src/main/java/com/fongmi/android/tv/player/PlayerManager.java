@@ -181,7 +181,9 @@ public class PlayerManager implements ParseCallback {
     }
 
     public boolean canPreloadNext() {
-        return PreloadSetting.isEnabled() && PreloadSetting.isNextEpisodeEnabled() && engine != null && engine.getType() == PlayerEngine.Type.EXO;
+        // Audio-only listening has no video to preload; fetching and buffering
+        // the next episode would only cost network, CPU and battery.
+        return !listenMode && PreloadSetting.isEnabled() && PreloadSetting.isNextEpisodeEnabled() && engine != null && engine.getType() == PlayerEngine.Type.EXO;
     }
 
     public boolean isPortrait() {

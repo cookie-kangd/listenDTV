@@ -14,6 +14,8 @@ import okhttp3.ResponseBody;
 
 final class ProxyRedirectInterceptor implements Interceptor {
 
+    private static final int MAX_FOLLOW_UPS = 20;
+
     private final OkProxySelector selector;
 
     ProxyRedirectInterceptor(OkProxySelector selector) {
@@ -37,18 +39,16 @@ final class ProxyRedirectInterceptor implements Interceptor {
                 routed = chain.withProxySelector(policy);
             }
             Response response = routed.proceed(request);
-            for (Response prior = response.priorResponse(); prior != null; prior = prior.priorResponse()) followUpCount++;
             response = withPriorResponse(response, previousResponse);
-            if (followUpCount > 20) {
-                response.close();
-                throw new ProtocolException("Too many follow-up requests: " + followUpCount);
-            }
             Request followUp = redirect(response, chain.getFollowSslRedirects());
             if (followUp == null) return response;
             RequestBody body = followUp.body();
             if (body != null && body.isOneShot()) return response;
             response.close();
-            if (++followUpCount > 20) throw new ProtocolException("Too many follow-up requests: " + followUpCount);
+            // Count the redirects we actually follow. The accumulated
+            // priorResponse chain grows by one per hop, so summing it here
+            // would hit the limit after only a handful of redirects.
+            if (++followUpCount > MAX_FOLLOW_UPS) throw new ProtocolException("Too many follow-up requests: " + followUpCount);
             previousResponse = response.newBuilder().body(ResponseBody.EMPTY).build();
             previousPolicy = policy;
             request = followUp;

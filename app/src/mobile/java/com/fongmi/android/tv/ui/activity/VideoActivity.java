@@ -104,6 +104,7 @@ import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PiP;
+import com.fongmi.android.tv.utils.RefreshRate;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Sniffer;
 import com.fongmi.android.tv.utils.Timer;
@@ -1383,7 +1384,17 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         if (service() != null) player().setListenMode(enabled);
         setAudioOnly(enabled);
         checkListenImg();
+        applyRefreshRate();
         Notify.show(enabled ? R.string.listen_on : R.string.listen_off);
+    }
+
+    /**
+     * Listen mode is audio-only: keep the panel at 60 Hz instead of following
+     * the (possibly 120/144 Hz) high-refresh preference. Re-applied on resume
+     * because BaseActivity applies the normal preference first.
+     */
+    private void applyRefreshRate() {
+        RefreshRate.apply(this, !isListen() && Setting.getHighRefresh());
     }
 
     private void onPip() {
@@ -1736,7 +1747,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         super.onUserLeaveHint();
         if (isRedirect()) return;
         if (isLock()) App.post(this::onLock, 500);
-        if (service() != null && player().haveTrack(C.TRACK_TYPE_VIDEO)) mPiP.enter(this, player().getVideoWidth(), player().getVideoHeight(), getScale());
+        if (service() != null && !isAudioOnly() && player().haveTrack(C.TRACK_TYPE_VIDEO)) mPiP.enter(this, player().getVideoWidth(), player().getVideoHeight(), getScale());
     }
 
     @Override
@@ -1774,6 +1785,12 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (isFullscreen() && hasFocus && !Util.isFullscreen(this)) Util.hideSystemUI(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        applyRefreshRate();
     }
 
     @Override

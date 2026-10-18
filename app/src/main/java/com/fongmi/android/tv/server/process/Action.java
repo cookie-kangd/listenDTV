@@ -172,7 +172,12 @@ public class Action implements Process {
 
     private void post(Device device, String type, FormBody.Builder body) {
         try {
-            OkHttp.newCall(OkHttp.client(Constant.TIMEOUT_SYNC), device.getIp().concat("/action?do=sync&mode=0&type=" + type), body.build()).execute();
+            String url = device.getIp().concat("/action?do=sync&mode=0&type=" + type);
+            // Close the response: this is a fire-and-forget LAN sync request, and
+            // an unclosed OkHttp response leaks the body/connection.
+            try (okhttp3.Response response = OkHttp.newCall(OkHttp.client(Constant.TIMEOUT_SYNC), url, body.build()).execute()) {
+                // No body is needed.
+            }
         } catch (Exception e) {
             App.post(() -> Notify.show(e.getMessage()));
         }

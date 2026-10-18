@@ -122,19 +122,24 @@ public class Setting {
     }
 
     public static boolean getListen() {
-        return Prefers.getBoolean("listen", true);
+        // v0.2.1 reused the legacy "listen" key, which could already exist as
+        // false in old settings/backups, making the new switch look off by
+        // default. Use a fresh key so the first run is always ON.
+        return Prefers.getBoolean("listen_default", true);
     }
 
     public static void putListen(boolean listen) {
-        Prefers.put("listen", listen);
+        Prefers.put("listen_default", listen);
     }
 
     public static String getListenMap() {
-        return Prefers.getString("listen_map");
+        // Ignore per-video overrides written by v0.2.1; they may contain stale
+        // "off" values for videos watched before the global switch existed.
+        return Prefers.getString("listen_map_v2");
     }
 
     public static void putListenMap(String value) {
-        Prefers.put("listen_map", value);
+        Prefers.put("listen_map_v2", value);
     }
 
     public static boolean getExitClean() {

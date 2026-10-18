@@ -1,3 +1,32 @@
+# listenDTV v0.2.2 更新说明
+
+## 修复：默认听播模式首次显示为「关」
+
+v0.2.1 复用了旧版 `listen` 持久化键；部分设备或旧备份中该键已经是 `false`，导致设置页显示「关」，播放时也会沿用旧的单视频覆盖。
+
+- 改用全新键 `listen_default`，默认值固定为 **开**
+- 单视频记忆改用新键 `listen_map_v2`，旧的 `listen_map` 不再影响播放
+- 升级后设置页首次显示「开」，新打开的视频默认进入听播模式
+- 如需关闭，在设置页切到「关」即可；播放中点击耳机图标仍可随时切换
+
+## 修复：局域网同步响应未关闭
+
+`Action.post()` 执行 OkHttp 请求后没有关闭 `Response`，每次局域网同步都会泄漏响应体/连接。已改为 try-with-resources 自动关闭。
+
+## 依赖更新
+
+- androidx.annotation 1.10.0 → 1.11.0
+- androidx.room 2.8.4 → 2.8.5
+- guava 33.7.1-android → 33.7.2-android
+- Media3 保持 1.11.0：项目使用 FongMi `release-1.11.0-fongmi` 定制源，不跟随官方 1.11.1
+- 其余依赖已是最新稳定版
+
+## 🧹 其他
+
+- versionCode 589 · versionName 0.2.2
+
+---
+
 # listenDTV v0.2.1 更新说明
 
 ## ✨ 新增：设置页「默认听播模式」开关

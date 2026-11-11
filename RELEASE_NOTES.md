@@ -1,3 +1,27 @@
+# listenDTV v0.2.3 更新说明
+
+## 修复：退出清理缓存未稳定生效
+
+开关与持久化本身正常（`exit_clean` 默认开启），问题出在实现时序：
+
+- 启动清理原为 `Application.onCreate()` 中的异步任务，且只扫描一次目录快照；随后配置加载、爬虫 jar、Glide / OkHttp / ExoPlayer 会立即重建缓存，导致设置页读数始终不为 0。
+- 后台听播保活时进程不会重建，`Application.onCreate()` 不再执行，启动兜底清理被跳过；退出清理依赖 `onActivityDestroyed` 的计数，异步任务还可能被系统中断。
+- `deleteOnExit()` 在 Android 上不会执行，删除失败的占用文件会一直残留。
+
+本次改为：**在 `onCreate()` 中同步清理、两轮扫描**；用 `onActivityStarted` / `onActivityStopped` 的前台计数 + `pendingClean` 标记替代 `alive` 计数，在回到前台第一时间补清（覆盖进程保活场景），退出时只打标记以免打断后台听播；移除无效的 `deleteOnExit()`。清理范围仍为 `getCacheDir()` + `getExternalCacheDir()`，与设置页统计口径一致。
+
+## 统一：两端手动清理缓存入口
+
+TV 端设置页的「Cache」原先走 `FileUtil.clearCache()`，手机端已改用 `App.clearAppCache()`。现统一为同一深度清理实现，点击后读数真正下降。
+
+## 说明
+
+- 本次发版**未合入**上游 `FongMi/TV` 5.8.x 的模块化运行时重构、播放控制器重构、预加载 / DRM / 字幕等改动，避免影响听播模式、OTA、局域网同步与 CI 签名体系。上游单点修复在独立试验分支评估后再合入。
+- 设置页显示的是「当前实时缓存占用」，App 运行中会持续产生缓存；验收请以「冷启动后读数从上次的 MB 级降到本次初始化的 KB 级」为准，而非绝对 0。
+- versionCode 590 · versionName 0.2.3
+
+---
+
 # listenDTV v0.2.2 更新说明
 
 ## 修复：默认听播模式首次显示为「关」

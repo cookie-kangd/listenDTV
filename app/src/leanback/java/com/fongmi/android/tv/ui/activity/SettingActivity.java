@@ -271,12 +271,12 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         mBinding.dohText.setText(doh.getName());
     }
 
-    private void onCache(View view) {
-        FileUtil.clearCache(new Callback() {
-            @Override
-            public void success() {
-                setCacheText();
-            }
+        private void onCache(View view) {
+        // Keep the manual clear consistent with the mobile flavor: the deep
+        // cleaner wipes both internal and external cache roots.
+        com.fongmi.android.tv.utils.Task.execute(() -> {
+            com.fongmi.android.tv.App.clearAppCache();
+            com.fongmi.android.tv.App.post(this::setCacheText);
         });
     }
 

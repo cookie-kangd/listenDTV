@@ -181,7 +181,7 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
     }
 
     private void onFilter(View view) {
-        if (mAdapter.getItemCount() > 0) FilterDialog.create().filter(mAdapter.get(mBinding.pager.getCurrentItem()).getFilters()).show(this);
+        if (mAdapter.getItemCount() > 0) FilterDialog.create().filter(getFragment().getFilters()).show(this);
     }
 
     private boolean onMenuItemClick(MenuItem item) {

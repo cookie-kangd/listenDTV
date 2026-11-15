@@ -21,6 +21,19 @@ jobs:
       - name: Checkout app
         uses: actions/checkout@v4
 
+      - name: Validate release notes (short, current version only)
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          set -euo pipefail
+          bytes=$(wc -c < RELEASE_NOTES.md)
+          lines=$(wc -l < RELEASE_NOTES.md)
+          headings=$(grep -c '^# ' RELEASE_NOTES.md || true)
+          echo "RELEASE_NOTES.md: ${bytes} bytes / ${lines} lines / ${headings} headings"
+          if [ "$bytes" -gt 1000 ] || [ "$lines" -gt 12 ] || [ "$headings" -gt 1 ]; then
+            echo "::error::Release notes must contain ONLY this version's short change list (<=1000 bytes, <=12 lines, one heading)."
+            exit 1
+          fi
+
       - name: Checkout FongMi Media3 source
         uses: actions/checkout@v4
         with:
@@ -137,6 +150,36 @@ jobs:
           path: app/build/outputs/**/*.apk
           if-no-files-found: warn
 
+      - name: Collect and verify release APKs
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          TAG_VERSION: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          EXPECTED="${TAG_VERSION#v}"
+          rm -rf release-assets && mkdir -p release-assets
+          AAPT2="$(find "$ANDROID_HOME/build-tools" -type f -name aapt2 | sort -V | tail -1 || true)"
+          echo "aapt2: ${AAPT2:-not found}"
+          for name in leanback-arm64_v8a.apk leanback-armeabi_v7a.apk mobile-arm64_v8a.apk mobile-armeabi_v7a.apk; do
+            apk="$(find app/build/outputs/apk -type f -name "$name" -printf '%T@ %p\n' | sort -n | tail -1 | cut -d' ' -f2-)"
+            if [ -z "$apk" ]; then
+              echo "::error::Missing build output: $name"
+              exit 1
+            fi
+            echo "Collecting $apk"
+            cp "$apk" "release-assets/$name"
+            if [ -n "$AAPT2" ] && [ -x "$AAPT2" ]; then
+              manifest="$("$AAPT2" dump xmltree --file AndroidManifest.xml "release-assets/$name" 2>/dev/null | grep -E 'versionCode|versionName' || true)"
+              echo "  version info: ${manifest:-<unavailable>}"
+              if [ -n "$manifest" ] && ! echo "$manifest" | grep -q "versionName.*\"$EXPECTED\""; then
+                echo "::error::$name versionName does not match tag $TAG_VERSION -- refusing to publish a stale APK"
+                exit 1
+              fi
+            fi
+          done
+          (cd release-assets && sha256sum *.apk > SHA256SUMS.txt)
+          cat release-assets/SHA256SUMS.txt
+
       - name: Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v3
@@ -144,5 +187,22 @@ jobs:
           name: ${{ github.ref_name }}
           body_path: RELEASE_NOTES.md
           make_latest: true
-          fail_on_unmatched_files: false
-          files: app/build/outputs/apk/**/*.apk
+          fail_on_unmatched_files: true
+          files: |
+            release-assets/*.apk
+            release-assets/SHA256SUMS.txt
+
+      - name: Remove old releases (only the latest one stays)
+        if: startsWith(github.ref, 'refs/tags/') && success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release list --limit 100 --json tagName --jq '.[].tagName' | while read -r tag; do
+            [ -z "$tag" ] && continue
+            [ "$tag" = "$GITHUB_REF_NAME" ] && continue
+            echo "Deleting old release $tag"
+            gh release delete "$tag" --yes || echo "Could not delete $tag"
+          done
+          echo "Remaining releases:"
+          gh release list --limit 100
